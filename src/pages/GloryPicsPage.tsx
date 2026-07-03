@@ -33,14 +33,14 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
     <div className="page">
       <button className="btn ghost small" onClick={onBack}>‹ Back</button>
       <div className="page-kicker" style={{ marginTop: 12 }}>Off-season feed</div>
-      <h2 className="page-title">Glory Pics</h2>
+      <h2 className="page-title">Glory Shots</h2>
       <p className="page-sub">
         Summer catches only — the between-tournaments bragging board.
         {settings && !settings.offSeasonMode && " (The M.O.C. has the feed set to tournament mode.)"}
       </p>
 
       <div className="card">
-        <h3>Post a glory pic</h3>
+        <h3>Post a glory shot</h3>
         <label className="field">
           <span>Photo</span>
           <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
@@ -69,7 +69,7 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
         const author = users.find((u) => u.id === p.userId);
         return (
           <article className="catch-card" key={p.id}>
-            <Photo url={p.photoUrl} blob={p.photo} alt="Glory pic" className="photo" />
+            <Photo url={p.photoUrl} blob={p.photo} alt="Glory shot" className="photo" />
             <div className="body">
               <div className="headline">
                 <span className="species" style={{ fontSize: 15 }}>

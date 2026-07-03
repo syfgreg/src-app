@@ -37,7 +37,7 @@ New anglers register in-app and start as **JAFNG (Rookie)**.
 | Rules Assistant | Rules AI tab | RAG over the official rulebook; offline mode quotes rules directly |
 | Live notifications | Bell icon + Web Notifications | Broadcasts the second the M.O.C. verifies a fish |
 | M.O.C. Admin panel | More → M.O.C. Panel | Approve/reject/rescore catches, roster roles, all scoring config |
-| Glory Pics | More → Glory Pics | Off-season feed with comments |
+| Glory Shots | More → Glory Shots | Off-season feed with comments |
 | Memories Vault | More → Memories Vault | Real SRC 1999–2001 archive photos, searchable |
 | Offline-first | Everywhere | IndexedDB ledger + service worker precache; installable PWA |
 

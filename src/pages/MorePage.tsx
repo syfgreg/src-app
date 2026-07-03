@@ -9,7 +9,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const items: { screen: Screen; icon: string; title: string; sub: string; mocOnly?: boolean }[] = [
     { screen: "profile", icon: "🎣", title: "My Career", sub: "Stats, catches, Shiner Club history" },
     { screen: "records", icon: "📜", title: "Record Book", sub: "Standing Sea Robin records by species" },
-    { screen: "glory", icon: "📸", title: "Glory Pics", sub: "Off-season feed — summer catches" },
+    { screen: "glory", icon: "📸", title: "Glory Shots", sub: "Off-season feed — summer catches" },
     { screen: "memories", icon: "🗄️", title: "Memories Vault", sub: "The archive: SRC 1999–2001" },
     { screen: "admin", icon: "🧿", title: "M.O.C. Panel", sub: "Roster, catches, scoring config", mocOnly: true },
   ];

@@ -250,7 +250,7 @@ function ScoringAdmin() {
             onChange={(e) => patch({ offSeasonMode: e.target.checked })}
             style={{ width: "auto" }}
           />
-          <span style={{ margin: 0 }}>Off-season mode (Glory Pics feed active)</span>
+          <span style={{ margin: 0 }}>Off-season mode (Glory Shots feed active)</span>
         </label>
       </div>
 
