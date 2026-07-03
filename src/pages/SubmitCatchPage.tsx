@@ -16,7 +16,6 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const [length, setLength] = useState("");
   const [gearType, setGearType] = useState<GearType>("BAIT");
   const [photo, setPhoto] = useState<File | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string>();
   const [useGps, setUseGps] = useState(true);
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState("");
@@ -34,8 +33,6 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const onPhoto = (f: File | null) => {
     setPhoto(f);
     setVerdict(null);
-    if (photoUrl) URL.revokeObjectURL(photoUrl);
-    setPhotoUrl(f ? URL.createObjectURL(f) : undefined);
   };
 
   const getPosition = () =>
@@ -136,14 +133,6 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
             onChange={(e) => onPhoto(e.target.files?.[0] ?? null)}
           />
         </label>
-        {photoUrl && (
-          <img
-            src={photoUrl}
-            alt="Catch preview"
-            style={{ width: "100%", borderRadius: 10, maxHeight: 280, objectFit: "cover" }}
-          />
-        )}
-
         <label className="field" style={{ marginTop: 12 }}>
           <span>Species</span>
           <select value={species} onChange={(e) => setSpecies(e.target.value)}>
