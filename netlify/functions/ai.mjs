@@ -2,7 +2,10 @@
 // the Netlify environment (GEMINI_API_KEY); it is never shipped to the browser.
 // Two actions: "verify" (vision catch check) and "rules" (grounded chat).
 
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-2.5-flash";
+// Disable Gemini 2.5's default "thinking" — unneeded for species ID / rules Q&A,
+// and it conserves the free-tier token budget over a weekend of catches.
+const NO_THINKING = { thinkingConfig: { thinkingBudget: 0 } };
 const ENDPOINT = (key) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
 
@@ -76,6 +79,7 @@ Tournament species list: ${(speciesList || []).join(", ")}.
       },
     ],
     generationConfig: {
+      ...NO_THINKING,
       responseMimeType: "application/json",
       responseSchema: {
         type: "OBJECT",
@@ -122,6 +126,7 @@ ${fullRules || ""}`,
         },
       ],
     },
+    generationConfig: { ...NO_THINKING },
     contents,
   });
 }
