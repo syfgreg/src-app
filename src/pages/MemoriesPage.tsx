@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { MEMORIES, MEMORY_YEARS } from "../data/seed";
+import { BackButton } from "../components/BackButton";
+import { Icon } from "../components/Icon";
 
 export function MemoriesPage({ onBack }: { onBack: () => void }) {
   const [year, setYear] = useState(MEMORY_YEARS[0]);
@@ -18,7 +20,7 @@ export function MemoriesPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="page">
-      <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+      <BackButton onBack={onBack} />
       <div className="page-kicker" style={{ marginTop: 12 }}>The Archive</div>
       <h2 className="page-title">Memories Vault</h2>
       <p className="page-sub">Photos, legends, and questionable decisions — organized by year.</p>
@@ -46,7 +48,10 @@ export function MemoriesPage({ onBack }: { onBack: () => void }) {
       </div>
       {photos.length === 0 && (
         <div className="empty-state">
-          <div className="big">🗄️</div>Nothing in the vault matches.
+          <div className="empty-icon">
+            <Icon name="archive" size={30} />
+          </div>
+          Nothing in the vault matches.
         </div>
       )}
 

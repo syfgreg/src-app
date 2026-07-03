@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
+import { useTheme } from "../context/ThemeContext";
+import { Icon } from "./Icon";
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { theme, toggle } = useTheme();
   const notifications = useLiveQuery(
     () => db.notifications.orderBy("at").reverse().limit(40).toArray(),
     [],
@@ -31,16 +34,34 @@ export function Header() {
           </h1>
           <div className="sub">Surf Fishing Tournament</div>
         </div>
-        <button className="header-bell" onClick={openDrawer} aria-label="Notifications">
-          🔔
-          {unread > 0 && <span className="dot">{unread}</span>}
-        </button>
+        <div className="header-actions">
+          <button className="header-btn" onClick={toggle} aria-label="Toggle theme">
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={19} />
+          </button>
+          <button className="header-btn" onClick={openDrawer} aria-label="Notifications">
+            <Icon name="bell" size={19} />
+            {unread > 0 && <span className="dot">{unread}</span>}
+          </button>
+        </div>
       </header>
       {open && (
         <div className="notif-drawer" onClick={() => setOpen(false)}>
           <div className="notif-panel" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontFamily: "var(--font-head)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 8 }}>
-              ⚠️ Live Wire
+            <h3
+              style={{
+                fontFamily: "var(--font-head)",
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+                fontSize: 13,
+                fontWeight: 700,
+                color: "var(--sand-dim)",
+                marginBottom: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Icon name="bell" size={16} /> Live Wire
             </h3>
             {notifications.length === 0 && (
               <p style={{ color: "var(--sand-faint)", fontSize: 14 }}>

@@ -2,6 +2,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { RoleBadge } from "../components/RoleBadge";
 import { CatchCard } from "../components/CatchCard";
+import { BackButton } from "../components/BackButton";
+import { Icon } from "../components/Icon";
 
 export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => void }) {
   const user = useLiveQuery(() => db.users.get(userId), [userId]);
@@ -28,7 +30,7 @@ export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => 
 
   return (
     <div className="page">
-      <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+      <BackButton onBack={onBack} />
       <div className="page-kicker" style={{ marginTop: 12 }}>Career file</div>
       <h2 className="page-title">
         {user.name}
@@ -67,18 +69,24 @@ export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => 
       </div>
 
       {shinerYears.length > 0 && (
-        <div className="ai-verdict warn" style={{ marginBottom: 14 }}>
-          🥉 Shiner Club member — {shinerYears.length} year{shinerYears.length > 1 ? "s" : ""} on
-          the board with a goose egg ({shinerYears.join(", ")}). Wear it proudly.
+        <div className="ai-verdict warn" style={{ marginBottom: 14, display: "flex", gap: 8 }}>
+          <Icon name="award" size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>
+            Shiner Club member — {shinerYears.length} year{shinerYears.length > 1 ? "s" : ""} on the
+            board with a goose egg ({shinerYears.join(", ")}). Wear it proudly.
+          </span>
         </div>
       )}
 
-      <h3 style={{ fontFamily: "var(--font-head)", textTransform: "uppercase", letterSpacing: 2, color: "var(--sand-dim)", margin: "8px 0 10px" }}>
+      <h3 style={{ fontFamily: "var(--font-head)", textTransform: "uppercase", letterSpacing: 1.2, fontSize: 13, fontWeight: 700, color: "var(--sand-dim)", margin: "8px 0 10px" }}>
         Catch history
       </h3>
       {catches.length === 0 && (
         <div className="empty-state">
-          <div className="big">🎣</div>No catches on file. Yet.
+          <div className="empty-icon">
+            <Icon name="fish" size={30} />
+          </div>
+          No catches on file. Yet.
         </div>
       )}
       {catches.map((c) => (

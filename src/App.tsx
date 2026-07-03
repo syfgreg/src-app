@@ -3,7 +3,7 @@ import { useApp } from "./context/AppContext";
 import { Header } from "./components/Header";
 import { TabBar, type Tab } from "./components/TabBar";
 import { LoginPage } from "./pages/LoginPage";
-import { LeaderboardPage } from "./pages/LeaderboardPage";
+import { ScorecardPage } from "./pages/ScorecardPage";
 import { SubmitCatchPage } from "./pages/SubmitCatchPage";
 import { RulesPage } from "./pages/RulesPage";
 import { MorePage } from "./pages/MorePage";
@@ -12,6 +12,7 @@ import { GloryPicsPage } from "./pages/GloryPicsPage";
 import { MemoriesPage } from "./pages/MemoriesPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AdminPage } from "./pages/AdminPage";
+import { Icon } from "./components/Icon";
 
 export type Screen =
   | Tab
@@ -24,13 +25,14 @@ export type Screen =
 export default function App() {
   const { user, ready } = useApp();
   const [screen, setScreen] = useState<Screen>("leaderboard");
-  const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   if (!ready) {
     return (
       <div className="app-shell">
         <div className="empty-state" style={{ paddingTop: "40dvh" }}>
-          <div className="big">🎣</div>
+          <div className="empty-icon">
+            <Icon name="waves" size={30} />
+          </div>
           Casting lines…
         </div>
       </div>
@@ -38,11 +40,6 @@ export default function App() {
   }
 
   if (!user) return <LoginPage />;
-
-  const openProfile = (userId: string) => {
-    setProfileUserId(userId);
-    setScreen("profile");
-  };
 
   const tab: Tab = (["leaderboard", "submit", "rules", "more"] as Tab[]).includes(
     screen as Tab,
@@ -53,7 +50,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header />
-      {screen === "leaderboard" && <LeaderboardPage onOpenProfile={openProfile} />}
+      {screen === "leaderboard" && <ScorecardPage />}
       {screen === "submit" && <SubmitCatchPage onDone={() => setScreen("leaderboard")} />}
       {screen === "rules" && <RulesPage />}
       {screen === "more" && <MorePage onNavigate={setScreen} />}
@@ -61,10 +58,7 @@ export default function App() {
       {screen === "glory" && <GloryPicsPage onBack={() => setScreen("more")} />}
       {screen === "memories" && <MemoriesPage onBack={() => setScreen("more")} />}
       {screen === "profile" && (
-        <ProfilePage
-          userId={profileUserId ?? user.id}
-          onBack={() => setScreen(profileUserId === user.id ? "more" : "leaderboard")}
-        />
+        <ProfilePage userId={user.id} onBack={() => setScreen("more")} />
       )}
       {screen === "admin" && <AdminPage onBack={() => setScreen("more")} />}
       <TabBar active={tab} onChange={(t) => setScreen(t)} />

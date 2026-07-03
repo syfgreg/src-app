@@ -4,6 +4,8 @@ import { db } from "../data/db";
 import { addComment, postGlory } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { Photo } from "../components/BlobImage";
+import { BackButton } from "../components/BackButton";
+import { Icon } from "../components/Icon";
 
 export function GloryPicsPage({ onBack }: { onBack: () => void }) {
   const { user } = useApp();
@@ -31,7 +33,7 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="page">
-      <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+      <BackButton onBack={onBack} />
       <div className="page-kicker" style={{ marginTop: 12 }}>Off-season feed</div>
       <h2 className="page-title">Glory Shots</h2>
       <p className="page-sub">
@@ -61,7 +63,10 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
 
       {pics.length === 0 && (
         <div className="empty-state">
-          <div className="big">📸</div>No glory yet. Summer's not over.
+          <div className="empty-icon">
+            <Icon name="camera" size={30} />
+          </div>
+          No glory yet. Summer's not over.
         </div>
       )}
 
@@ -92,8 +97,8 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
                   onKeyDown={(e) => e.key === "Enter" && submitComment(p.id)}
                   placeholder="Talk your talk…"
                 />
-                <button className="btn small" onClick={() => submitComment(p.id)}>
-                  💬
+                <button className="btn small" onClick={() => submitComment(p.id)} aria-label="Comment">
+                  <Icon name="send" size={16} />
                 </button>
               </div>
             </div>

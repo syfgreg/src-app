@@ -1,13 +1,14 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { RUNNER_UP_RECORDS } from "../domain/records";
+import { BackButton } from "../components/BackButton";
 
 export function RecordsPage({ onBack }: { onBack: () => void }) {
   const records = useLiveQuery(() => db.records.toArray(), [], []);
 
   return (
     <div className="page">
-      <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+      <BackButton onBack={onBack} />
       <div className="page-kicker" style={{ marginTop: 12 }}>Section 5-H</div>
       <h2 className="page-title">The Record Book</h2>
       <p className="page-sub">

@@ -1,10 +1,12 @@
+import { Icon, type IconName } from "./Icon";
+
 export type Tab = "leaderboard" | "submit" | "rules" | "more";
 
-const TABS: { id: Tab; label: string; icon: string; cls?: string }[] = [
-  { id: "leaderboard", label: "Leaders", icon: "🏆" },
-  { id: "submit", label: "Log Catch", icon: "🐟", cls: "submit-tab" },
-  { id: "rules", label: "Rules AI", icon: "⚖️" },
-  { id: "more", label: "More", icon: "☰" },
+const TABS: { id: Tab; label: string; icon: IconName; cls?: string; size?: number }[] = [
+  { id: "leaderboard", label: "Scorecard", icon: "scorecard" },
+  { id: "submit", label: "Log Catch", icon: "plus", cls: "submit-tab", size: 26 },
+  { id: "rules", label: "Rules AI", icon: "rules" },
+  { id: "more", label: "More", icon: "grid" },
 ];
 
 export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
@@ -16,7 +18,9 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
           className={`${active === t.id ? "active" : ""} ${t.cls ?? ""}`}
           onClick={() => onChange(t.id)}
         >
-          <span className="ico">{t.icon}</span>
+          <span className="ico">
+            <Icon name={t.icon} size={t.size ?? 22} strokeWidth={t.cls ? 2 : 1.85} />
+          </span>
           {t.label}
         </button>
       ))}

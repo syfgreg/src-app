@@ -5,6 +5,7 @@ import { broadcast, submitCatch } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { scoreCatch } from "../domain/scoring";
 import { aiAvailable, verifyCatchPhoto, type CatchVerification } from "../ai/claude";
+import { Icon } from "../components/Icon";
 import type { GearType } from "../domain/types";
 
 export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
@@ -99,11 +100,11 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
 
       if (status === "APPROVED") {
         await broadcast(
-          `⚠️ ${user.name}${user.nickname ? ` "${user.nickname}"` : ""} just landed a ${lengthNum}" ${species}${gearType === "LURE" ? " on an artificial lure" : ""}! (+${score.points.toLocaleString()} pts)`,
+          `${user.name}${user.nickname ? ` "${user.nickname}"` : ""} just landed a ${species}${gearType === "LURE" ? " on an artificial lure" : ""}! (+${score.points.toLocaleString()} pts)`,
         );
       } else {
         await broadcast(
-          `📋 ${user.name} submitted a ${lengthNum}" ${species}${score.isRecordBreaker ? " — POTENTIAL RECORD BREAKER" : score.isTrophy ? " — Trophy candidate" : ""}. Awaiting M.O.C. measurement.`,
+          `${user.name} submitted a ${species}${score.isRecordBreaker ? " — POTENTIAL RECORD BREAKER" : score.isTrophy ? " — Trophy candidate" : ""}. Awaiting the M.O.C.`,
         );
       }
       setPhase("");
@@ -170,7 +171,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
                 className={`btn ${gearType === g ? "" : "ghost"}`}
                 onClick={() => setGearType(g)}
               >
-                {g === "BAIT" ? "🪱 Bait" : "🎏 Artificial Lure"}
+                {g === "BAIT" ? "Bait" : "Artificial Lure"}
               </button>
             ))}
           </div>
@@ -199,21 +200,30 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
             ))}
           </ul>
           {(preview.isTrophy || preview.isRecordBreaker) && (
-            <div className="ai-verdict warn" style={{ marginTop: 10 }}>
-              {preview.isRecordBreaker ? "⚡ POTENTIAL RECORD BREAKER — " : "🏆 Trophy Fish — "}
-              must be presented to the M.O.C. for official measurement. Exact measurement only, no
-              rounding.
+            <div className="ai-verdict warn" style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <Icon name={preview.isRecordBreaker ? "bolt" : "trophy"} size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>
+                {preview.isRecordBreaker ? "Potential record breaker — " : "Trophy fish — "}
+                must be presented to the M.O.C. for official measurement. Exact measurement only, no
+                rounding.
+              </span>
             </div>
           )}
         </div>
       )}
 
       {verdict && (
-        <div className={`ai-verdict ${verdict.matchesClaim && verdict.confidence >= 0.75 ? "good" : "warn"}`}>
-          🤖 AI judge: sees <strong>{verdict.speciesDetected}</strong> (
-          {Math.round(verdict.confidence * 100)}% confident).{" "}
-          {verdict.measurementVisible ? "Measuring device visible." : "No measuring device visible!"}{" "}
-          {verdict.notes}
+        <div
+          className={`ai-verdict ${verdict.matchesClaim && verdict.confidence >= 0.75 ? "good" : "warn"}`}
+          style={{ display: "flex", gap: 8 }}
+        >
+          <Icon name="sparkle" size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span>
+            AI judge sees <strong>{verdict.speciesDetected}</strong> (
+            {Math.round(verdict.confidence * 100)}% confident).{" "}
+            {verdict.measurementVisible ? "Measuring device visible." : "No measuring device visible!"}{" "}
+            {verdict.notes}
+          </span>
         </div>
       )}
 
@@ -229,8 +239,8 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
       )}
       {!navigator.onLine && (
         <p className="ok-note">
-          📡 No signal — catch is saved to the local ledger and scored instantly. It syncs when the
-          beach gives you bars.
+          No signal — catch is saved to the local ledger and scored instantly. It syncs when the beach
+          gives you bars.
         </p>
       )}
     </div>

@@ -14,6 +14,8 @@ import {
 import { useApp } from "../context/AppContext";
 import { scoreCatch } from "../domain/scoring";
 import { CatchCard } from "../components/CatchCard";
+import { BackButton } from "../components/BackButton";
+import { Icon } from "../components/Icon";
 import type { RoleTag, Settings } from "../domain/types";
 import { ROLE_LABELS } from "../domain/types";
 
@@ -26,9 +28,11 @@ export function AdminPage({ onBack }: { onBack: () => void }) {
   if (user?.roleTag !== "MOC") {
     return (
       <div className="page">
-        <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+        <BackButton onBack={onBack} />
         <div className="empty-state">
-          <div className="big">🧿</div>
+          <div className="empty-icon">
+            <Icon name="shield" size={30} />
+          </div>
           The M.O.C. panel is for the M.O.C. All decisions are final.
         </div>
       </div>
@@ -37,7 +41,7 @@ export function AdminPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="page">
-      <button className="btn ghost small" onClick={onBack}>‹ Back</button>
+      <BackButton onBack={onBack} />
       <div className="page-kicker" style={{ marginTop: 12 }}>Sole jurisdiction of the A.A.M.O.C.</div>
       <h2 className="page-title">M.O.C. Panel</h2>
 
@@ -77,7 +81,7 @@ function CatchModeration() {
     const angler = users.find((u) => u.id === c.userId);
     if (status === "APPROVED") {
       await broadcast(
-        `⚠️ M.O.C. VERIFIED: ${angler?.name ?? "An angler"} landed a ${c.lengthInches}" ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}! (+${c.pointValue.toLocaleString()} pts)${c.isRecordBreaker ? " ⚡ NEW SEA ROBIN RECORD!" : ""}`,
+        `M.O.C. VERIFIED: ${angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}! (+${c.pointValue.toLocaleString()} pts)${c.isRecordBreaker ? " — NEW SEA ROBIN RECORD!" : ""}`,
       );
       // A verified record breaker rewrites the record book
       if (c.isRecordBreaker && angler) {
@@ -91,7 +95,7 @@ function CatchModeration() {
         }
       }
     } else {
-      await broadcast(`🚫 M.O.C. ruling: ${angler?.name ?? "an angler"}'s ${c.species} submission was rejected.`);
+      await broadcast(`M.O.C. ruling: ${angler?.name ?? "an angler"}'s ${c.species} submission was rejected.`);
     }
   };
 
@@ -120,9 +124,15 @@ function CatchModeration() {
   const renderControls = (id: string) => (
     <div style={{ marginTop: 10 }}>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        <button className="btn small seafoam" onClick={() => decide(id, "APPROVED")}>✓ Approve</button>
-        <button className="btn small danger" onClick={() => decide(id, "REJECTED")}>✕ Reject</button>
-        <button className="btn small ghost" onClick={() => remove(id)}>🗑 Strike</button>
+        <button className="btn small seafoam" onClick={() => decide(id, "APPROVED")}>
+          <Icon name="check" size={16} /> Approve
+        </button>
+        <button className="btn small danger" onClick={() => decide(id, "REJECTED")}>
+          <Icon name="x" size={16} /> Reject
+        </button>
+        <button className="btn small ghost" onClick={() => remove(id)}>
+          <Icon name="trash" size={16} /> Strike
+        </button>
       </div>
       <div className="chat-input-row" style={{ marginTop: 8 }}>
         <input
