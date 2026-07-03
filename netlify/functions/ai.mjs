@@ -1,10 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-// Server-side AI proxy. The Anthropic API key lives only in the Netlify
-// environment (ANTHROPIC_API_KEY) — it is never shipped to the browser.
+// Server-side AI proxy — Google Gemini (free tier). The API key lives only in
+// the Netlify environment (GEMINI_API_KEY); it is never shipped to the browser.
 // Two actions: "verify" (vision catch check) and "rules" (grounded chat).
 
-const MODEL = "claude-opus-4-8";
+const MODEL = "gemini-2.0-flash";
+const ENDPOINT = (key) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
 
 const json = (status, body) => ({
   statusCode: status,
@@ -15,8 +15,8 @@ const json = (status, body) => ({
 export async function handler(event) {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return json(503, { error: "AI not configured (no ANTHROPIC_API_KEY)." });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return json(503, { error: "AI not configured (no GEMINI_API_KEY)." });
 
   let payload;
   try {
@@ -25,14 +25,12 @@ export async function handler(event) {
     return json(400, { error: "Invalid JSON body." });
   }
 
-  const client = new Anthropic({ apiKey });
-
   try {
     if (payload.action === "verify") {
-      return json(200, { verification: await verify(client, payload) });
+      return json(200, { verification: await verify(apiKey, payload) });
     }
     if (payload.action === "rules") {
-      return json(200, { text: await rules(client, payload) });
+      return json(200, { text: await rules(apiKey, payload) });
     }
     return json(400, { error: "Unknown action." });
   } catch (err) {
@@ -40,42 +38,31 @@ export async function handler(event) {
   }
 }
 
-async function verify(client, { imageBase64, mediaType, species, length, speciesList }) {
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    output_config: {
-      format: {
-        type: "json_schema",
-        schema: {
-          type: "object",
-          properties: {
-            speciesDetected: { type: "string" },
-            matchesClaim: { type: "boolean" },
-            measurementVisible: { type: "boolean" },
-            lengthPlausible: { type: "boolean" },
-            confidence: { type: "number" },
-            notes: { type: "string" },
-          },
-          required: [
-            "speciesDetected",
-            "matchesClaim",
-            "measurementVisible",
-            "lengthPlausible",
-            "confidence",
-            "notes",
-          ],
-          additionalProperties: false,
-        },
-      },
-    },
-    messages: [
+async function callGemini(apiKey, requestBody) {
+  const res = await fetch(ENDPOINT(apiKey), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(requestBody),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error?.message || `Gemini request failed (${res.status})`);
+  }
+  const cand = data.candidates?.[0];
+  if (!cand || cand.finishReason === "SAFETY") {
+    throw new Error("Gemini declined the request — flag for manual M.O.C. review.");
+  }
+  return cand.content?.parts?.map((p) => p.text || "").join("") || "";
+}
+
+async function verify(apiKey, { imageBase64, mediaType, species, length, speciesList }) {
+  const text = await callGemini(apiKey, {
+    contents: [
       {
         role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: mediaType || "image/jpeg", data: imageBase64 } },
+        parts: [
+          { inline_data: { mime_type: mediaType || "image/jpeg", data: imageBase64 } },
           {
-            type: "text",
             text: `You are the catch-verification judge for the Sea Robin Classic surf fishing tournament (Mid-Atlantic surf, Delaware/Maryland beaches).
 
 Angler's claim: species = "${species}", length = ${length} inches.
@@ -88,33 +75,53 @@ Tournament species list: ${(speciesList || []).join(", ")}.
         ],
       },
     ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          speciesDetected: { type: "STRING" },
+          matchesClaim: { type: "BOOLEAN" },
+          measurementVisible: { type: "BOOLEAN" },
+          lengthPlausible: { type: "BOOLEAN" },
+          confidence: { type: "NUMBER" },
+          notes: { type: "STRING" },
+        },
+        required: [
+          "speciesDetected",
+          "matchesClaim",
+          "measurementVisible",
+          "lengthPlausible",
+          "confidence",
+          "notes",
+        ],
+      },
+    },
   });
-
-  if (response.stop_reason === "refusal") {
-    throw new Error("Verification declined — flag for manual M.O.C. review.");
-  }
-  const text = response.content.find((b) => b.type === "text");
-  if (!text) throw new Error("No verification result returned.");
-  return JSON.parse(text.text);
+  return JSON.parse(text);
 }
 
-async function rules(client, { question, grounding, fullRules, history }) {
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system: `You are the official Rules Assistant of the Sea Robin Classic Surf Fishing Tournament (S.R.C.S.F.T.). Answer ONLY from the Official Rules and Regulations provided below. Be direct, cite the relevant rule section by name, and keep the tournament's tongue-in-cheek ceremonial tone (the M.O.C.'s word is final). If the rules don't cover something, say the M.O.C. will regulate it "solely and without debate."
+async function rules(apiKey, { question, grounding, fullRules, history }) {
+  const contents = (history || []).map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+  contents.push({ role: "user", parts: [{ text: question }] });
+
+  return callGemini(apiKey, {
+    systemInstruction: {
+      parts: [
+        {
+          text: `You are the official Rules Assistant of the Sea Robin Classic Surf Fishing Tournament (S.R.C.S.F.T.). Answer ONLY from the Official Rules and Regulations provided below. Be direct, cite the relevant rule section by name, and keep the tournament's tongue-in-cheek ceremonial tone (the M.O.C.'s word is final). If the rules don't cover something, say the M.O.C. will regulate it "solely and without debate."
 
 MOST RELEVANT SECTIONS FOR THIS QUESTION:
 ${grounding || ""}
 
 FULL RULEBOOK:
 ${fullRules || ""}`,
-    messages: [...(history || []), { role: "user", content: question }],
+        },
+      ],
+    },
+    contents,
   });
-
-  if (response.stop_reason === "refusal") {
-    return "The Assistant declines to answer that one. Take it up with the M.O.C.";
-  }
-  const text = response.content.find((b) => b.type === "text");
-  return text ? text.text : "No answer returned.";
 }

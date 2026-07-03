@@ -309,8 +309,8 @@ function ScoringAdmin() {
         <h3>AI verification engine</h3>
         <p style={{ color: "var(--sand-dim)", fontSize: 14 }}>
           {cloud
-            ? "AI vision verification and the full rules assistant run through the secure server function. The Anthropic API key is configured in the Netlify environment — never in the app or on any device."
-            : "Running in local mode. Deploy to Netlify with ANTHROPIC_API_KEY set to enable AI catch verification and the full rules assistant. Until then, catches queue for your manual review and the assistant quotes the rulebook directly."}
+            ? "AI vision verification and the full rules assistant run through the secure server function on Google Gemini. The GEMINI_API_KEY is configured in the Netlify environment — never in the app or on any device."
+            : "Running in local mode. Deploy to Netlify with GEMINI_API_KEY set to enable AI catch verification and the full rules assistant. Until then, catches queue for your manual review and the assistant quotes the rulebook directly."}
         </p>
       </div>
       {saved && <p className="ok-note">Saved. The M.O.C.'s word is law.</p>}
