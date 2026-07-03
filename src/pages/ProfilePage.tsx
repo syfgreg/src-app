@@ -39,7 +39,7 @@ export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => 
         {new Date(user.createdAt).getFullYear()}
       </p>
 
-      <div className="stat-grid" style={{ marginBottom: 14 }}>
+      <div className="stat-grid stagger" style={{ marginBottom: 14 }}>
         <div className="stat">
           <div className="value">{careerPoints.toLocaleString()}</div>
           <div className="label">Career points</div>

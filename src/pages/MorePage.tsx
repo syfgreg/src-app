@@ -22,6 +22,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
       </h2>
       <p className="page-sub">{user.email}</p>
 
+      <div className="stagger">
       {items
         .filter((i) => !i.mocOnly || user.roleTag === "MOC")
         .map((i) => (
@@ -34,6 +35,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
             <div style={{ color: "var(--sand-faint)" }}>›</div>
           </div>
         ))}
+      </div>
 
       <button className="btn ghost" style={{ marginTop: 16 }} onClick={logout}>
         Log out

@@ -53,6 +53,7 @@ export function LeaderboardPage({ onOpenProfile }: { onOpenProfile: (id: string)
         </div>
       )}
 
+      <div className="stagger">
       {rows?.map((r, i) => (
         <div
           key={r.user.id}
@@ -76,6 +77,7 @@ export function LeaderboardPage({ onOpenProfile }: { onOpenProfile: (id: string)
           </div>
         </div>
       ))}
+      </div>
 
       {latest && latest.length > 0 && (
         <>

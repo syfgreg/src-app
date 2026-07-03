@@ -15,7 +15,7 @@ export function RecordsPage({ onBack }: { onBack: () => void }) {
         Exact measurements only.
       </p>
 
-      <div className="card">
+      <div className="card stagger">
         {records
           .slice()
           .sort((a, b) => b.lengthInches - a.lengthInches)

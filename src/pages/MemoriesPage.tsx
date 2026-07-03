@@ -36,7 +36,7 @@ export function MemoriesPage({ onBack }: { onBack: () => void }) {
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="fire, night, banner…" />
       </label>
 
-      <div className="photo-grid">
+      <div className="photo-grid stagger" key={year}>
         {photos.map((m) => (
           <figure key={m.src} onClick={() => setOpen(m.src)}>
             <img src={m.src} alt={m.caption} />
