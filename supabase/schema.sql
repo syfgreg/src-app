@@ -5,17 +5,21 @@
 -- ============================================================================
 
 -- ---------- helper: is the caller the M.O.C.? --------------------------------
+-- plpgsql (not sql) so the profiles reference resolves at call time, letting
+-- this helper be defined before the profiles table.
 create or replace function public.is_moc()
 returns boolean
-language sql
+language plpgsql
 security definer
 stable
 set search_path = public
 as $$
-  select exists (
+begin
+  return exists (
     select 1 from public.profiles
     where id = auth.uid() and role_tag = 'MOC'
   );
+end;
 $$;
 
 -- ---------- profiles (1:1 with auth.users) -----------------------------------
