@@ -49,15 +49,17 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const submit = async () => {
     if (!user || !settings || !records) return;
     setError(null);
-    if (!photo) return setError("Snap a photo of the catch on the sand — no photo, no points.");
     if (!lengthNum || lengthNum <= 0) return setError("Enter the measured length in inches.");
     if (lengthNum > 100) return setError("Over 100 inches? Take it up with the M.O.C. in person.");
 
+    if ((settings.state ?? "SETUP") !== "LIVE") return setError("The tournament isn't open for submissions right now.");
+
     setBusy(true);
     try {
-      // 1. AI verification (server-side, when the backend is live)
+      // 1. AI verification (server-side, when the backend is live) — assists the
+      //    M.O.C.'s end-of-tournament review; it no longer gates approval.
       let ai: CatchVerification | null = null;
-      if (aiAvailable()) {
+      if (aiAvailable() && photo) {
         setPhase("AI judge is inspecting your fish…");
         try {
           ai = await verifyCatchPhoto(photo, species, lengthNum, settings.species.map((s) => s.name));
@@ -72,11 +74,9 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
       const score = scoreCatch(species, lengthNum, gearType, settings, records);
       const pos = await getPosition();
 
-      // 3. Persist (offline-first). Trophy/Record catches always await the
-      //    M.O.C.'s official measurement per the rulebook.
-      const needsMoc =
-        score.isTrophy || score.isRecordBreaker || !ai || !ai.matchesClaim || ai.confidence < 0.75;
-      const status = needsMoc ? "PENDING" : "APPROVED";
+      // 3. Persist (offline-first). Every catch counts on the board immediately;
+      //    the M.O.C. reviews / edits / declines during end-of-tournament validation.
+      const status = "APPROVED" as const;
 
       await submitCatch({
         userId: user.id,
@@ -89,7 +89,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         isTrophy: score.isTrophy,
         isRecordBreaker: score.isRecordBreaker,
         pointValue: score.points,
-        photo,
+        photo: photo ?? undefined,
         lat: pos?.coords.latitude,
         lng: pos?.coords.longitude,
         aiConfidence: ai?.confidence,
@@ -98,15 +98,9 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         createdAt: Date.now(),
       });
 
-      if (status === "APPROVED") {
-        await broadcast(
-          `${user.name}${user.nickname ? ` "${user.nickname}"` : ""} just landed a ${species}${gearType === "LURE" ? " on an artificial lure" : ""}! (+${score.points.toLocaleString()} pts)`,
-        );
-      } else {
-        await broadcast(
-          `${user.name} submitted a ${species}${score.isRecordBreaker ? " — POTENTIAL RECORD BREAKER" : score.isTrophy ? " — Trophy candidate" : ""}. Awaiting the M.O.C.`,
-        );
-      }
+      await broadcast(
+        `${user.name}${user.nickname ? ` "${user.nickname}"` : ""} just landed a ${species}${gearType === "LURE" ? " on an artificial lure" : ""}! (+${score.points.toLocaleString()} pts)`,
+      );
       setPhase("");
       onDone();
     } finally {
@@ -116,23 +110,50 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
 
   if (!settings) return null;
 
+  const tState = settings.state ?? "SETUP";
+  if (tState !== "LIVE") {
+    const msg =
+      tState === "SETUP"
+        ? "The tournament hasn't started yet. Hold tight — the M.O.C. will drop the flag soon."
+        : tState === "PUBLISHED"
+          ? "The tournament is over and the results are official. Check the final standings!"
+          : "Lines out — the tournament has ended. The M.O.C. is validating scorecards; results are coming.";
+    return (
+      <div className="page">
+        <div className="page-kicker">On the sand</div>
+        <h2 className="page-title">Log a Catch</h2>
+        <div className="empty-state">
+          <div className="empty-icon">
+            <Icon name={tState === "PUBLISHED" ? "trophy" : "waves"} size={30} />
+          </div>
+          {msg}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <div className="page-kicker">On the sand</div>
       <h2 className="page-title">Log a Catch</h2>
       <p className="page-sub">
-        Hooked, landed, identified, measured. Include the measuring device in the photo.
+        Hooked, landed, identified, measured. A photo is optional — but adding one with the measuring
+        device visible lets the AI verify and score you instantly.
       </p>
 
       <div className="card">
         <label className="field">
-          <span>Catch photo (measurement tape visible)</span>
+          <span>Catch photo — optional (measuring device visible)</span>
           <input
             type="file"
             accept="image/*"
-            capture="environment"
             onChange={(e) => onPhoto(e.target.files?.[0] ?? null)}
           />
+          {!photo && (
+            <small style={{ display: "block", color: "var(--sand-faint)", fontSize: 12, marginTop: 6 }}>
+              No photo? Your catch still counts — it just queues for the M.O.C.'s manual review.
+            </small>
+          )}
         </label>
         <label className="field" style={{ marginTop: 12 }}>
           <span>Species</span>

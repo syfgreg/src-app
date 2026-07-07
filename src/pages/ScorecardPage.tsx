@@ -3,22 +3,21 @@ import { db } from "../data/db";
 import { useApp } from "../context/AppContext";
 import { RoleBadge } from "../components/RoleBadge";
 import { Icon } from "../components/Icon";
+import { OceanReport } from "../components/OceanReport";
 import type { CatchEntry } from "../domain/types";
 
-export function ScorecardPage() {
+export function ScorecardPage({ onViewResults }: { onViewResults?: () => void }) {
   const { user } = useApp();
   const settings = useLiveQuery(() => db.settings.get(1), []);
   const year = settings?.tournamentYear ?? new Date().getFullYear();
 
   const live = useLiveQuery(async () => {
-    const approved = await db.catches
+    const count = await db.catches
       .where("tournamentYear")
       .equals(year)
       .and((c) => c.status === "APPROVED")
-      .toArray();
-    const anglers = new Set(approved.map((c) => c.userId)).size;
-    const biggest = approved.reduce((m, c) => Math.max(m, c.lengthInches), 0);
-    return { count: approved.length, anglers, biggest };
+      .count();
+    return { count };
   }, [year]);
 
   const mine =
@@ -47,6 +46,21 @@ export function ScorecardPage() {
       <h2 className="page-title">Tournament Live</h2>
       <p className="page-sub">The pulse of the beach, and your card.</p>
 
+      {settings?.state === "PUBLISHED" && (
+        <div
+          className="results-banner"
+          role={onViewResults ? "button" : undefined}
+          onClick={onViewResults}
+        >
+          <Icon name="trophy" size={24} />
+          <div className="rb-text">
+            <b>Results are official</b>
+            <span>Tap to see the final standings</span>
+          </div>
+          <Icon name="next" size={18} />
+        </div>
+      )}
+
       <div className="live-panel">
         <Icon name="fish" size={120} className="fish-deco" strokeWidth={1.4} />
         <div className="live-tag">
@@ -54,17 +68,9 @@ export function ScorecardPage() {
         </div>
         <div className="big-count">{live?.count ?? 0}</div>
         <div className="count-label">fish landed &amp; verified</div>
-        <div className="live-sub">
-          <div>
-            <b>{live?.anglers ?? 0}</b>
-            <span>on the board</span>
-          </div>
-          <div>
-            <b>{live?.biggest ? `${live.biggest}"` : "—"}</b>
-            <span>biggest so far</span>
-          </div>
-        </div>
       </div>
+
+      <OceanReport />
 
       <div className="card">
         <div className="scorecard-head">

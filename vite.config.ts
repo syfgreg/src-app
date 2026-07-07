@@ -35,8 +35,8 @@ export default defineConfig({
         short_name: "Sea Robin",
         description:
           "Official app of the Sea Robin Classic Surf Fishing Tournament — live scoring, records, and lore.",
-        theme_color: "#0b1d2a",
-        background_color: "#0b1d2a",
+        theme_color: "#0b0e12",
+        background_color: "#0b0e12",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",

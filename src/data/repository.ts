@@ -5,6 +5,7 @@ import type {
   CatchEntry,
   GloryComment,
   GloryPic,
+  Newsletter,
   RoleTag,
   Settings,
 } from "../domain/types";
@@ -181,6 +182,9 @@ const SETTINGS_MAP: Record<string, string> = {
   skateBaselinePPI: "skate_baseline_ppi",
   species: "species",
   offSeasonMode: "off_season_mode",
+  state: "tournament_state",
+  publishedAt: "published_at",
+  reviewedAnglers: "reviewed_anglers",
 };
 
 export async function updateSettings(changes: Partial<Settings>) {
@@ -189,7 +193,87 @@ export async function updateSettings(changes: Partial<Settings>) {
   for (const [k, v] of Object.entries(changes)) {
     if (k === "id") continue;
     const col = SETTINGS_MAP[k];
-    if (col) payload[col] = v;
+    if (!col) continue;
+    // published_at is a timestamptz column; send ISO (or null), not ms epoch.
+    payload[col] = col === "published_at" && typeof v === "number" ? new Date(v).toISOString() : v;
   }
   await remoteWrite({ table: "settings", op: "update", key: "1", payload, at: now() });
+}
+
+// ---------- tournament lifecycle -------------------------------------------
+export async function startTournament() {
+  await updateSettings({ state: "LIVE" });
+  await broadcast("🎣 The tournament is LIVE — lines in the water!");
+}
+
+export async function endTournament() {
+  await updateSettings({ state: "ENDED" });
+  await broadcast("Lines out! The tournament has ended — the M.O.C. is validating scorecards.");
+}
+
+/** Mark which anglers' scorecards the M.O.C. has validated (gates Publish). */
+export async function setReviewedAnglers(ids: string[]) {
+  await updateSettings({ reviewedAnglers: ids });
+}
+
+/**
+ * Publish: finalize the record book from approved record-breakers (highest
+ * length per species that still beats the standing record), flip to PUBLISHED,
+ * and announce. Records are only rewritten here — never mid-tournament — so the
+ * book can't churn while fish are still coming in.
+ */
+export async function publishResults() {
+  const settings = await db.settings.get(1);
+  const year = settings?.tournamentYear ?? new Date().getFullYear();
+  const approved = await db.catches
+    .where("tournamentYear")
+    .equals(year)
+    .and((c) => c.status === "APPROVED" && c.isRecordBreaker)
+    .toArray();
+
+  const bestBySpecies = new Map<string, CatchEntry>();
+  for (const c of approved) {
+    const key = c.species.toLowerCase();
+    const cur = bestBySpecies.get(key);
+    if (!cur || c.lengthInches > cur.lengthInches) bestBySpecies.set(key, c);
+  }
+
+  const records = await db.records.toArray();
+  for (const c of bestBySpecies.values()) {
+    const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());
+    if (!rec || c.lengthInches <= rec.lengthInches) continue;
+    const angler = await db.users.get(c.userId);
+    await updateRecord(rec.species, {
+      holder: angler?.name ?? "An angler",
+      year: c.tournamentYear,
+      lengthInches: c.lengthInches,
+    });
+  }
+
+  await updateSettings({ state: "PUBLISHED", publishedAt: now() });
+  await broadcast("🏆 The results are official! Tap in to see the final standings.");
+}
+
+// ---------- newsletter ------------------------------------------------------
+export async function publishNewsletter(entry: { title: string; body: string; author: string }): Promise<void> {
+  const n: Newsletter = { id: uuid(), createdAt: now(), ...entry };
+  await db.newsletters.put(n);
+  await remoteWrite({
+    table: "newsletters",
+    op: "upsert",
+    key: n.id,
+    payload: {
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      author: n.author,
+      created_at: new Date(n.createdAt).toISOString(),
+    },
+    at: n.createdAt,
+  });
+}
+
+export async function deleteNewsletter(id: string) {
+  await db.newsletters.delete(id);
+  await remoteWrite({ table: "newsletters", op: "delete", key: id, payload: {}, at: now() });
 }

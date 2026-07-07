@@ -3,6 +3,7 @@ import type {
   AppNotification,
   CatchEntry,
   GloryPic,
+  Newsletter,
   OutboxItem,
   RecordEntry,
   Settings,
@@ -25,6 +26,7 @@ class SeaRobinDB extends Dexie {
   settings!: Table<Settings, number>;
   records!: Table<RecordEntry & { id?: string }, string>;
   notifications!: Table<AppNotification, string>;
+  newsletters!: Table<Newsletter, string>;
   outbox!: Table<OutboxItem, number>;
 
   constructor() {
@@ -49,6 +51,10 @@ class SeaRobinDB extends Dexie {
           ),
         );
       });
+    // v3 adds the newsletter bulletin table (additive; existing stores unchanged).
+    this.version(3).stores({
+      newsletters: "id, createdAt",
+    });
   }
 }
 

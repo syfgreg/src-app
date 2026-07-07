@@ -7,7 +7,7 @@ import { Photo } from "../components/BlobImage";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
 
-export function GloryPicsPage({ onBack }: { onBack: () => void }) {
+export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
   const { user } = useApp();
   const settings = useLiveQuery(() => db.settings.get(1), []);
   const pics = useLiveQuery(() => db.gloryPics.orderBy("createdAt").reverse().toArray(), [], []);
@@ -33,8 +33,8 @@ export function GloryPicsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="page">
-      <BackButton onBack={onBack} />
-      <div className="page-kicker" style={{ marginTop: 12 }}>Off-season feed</div>
+      {onBack && <BackButton onBack={onBack} />}
+      <div className="page-kicker" style={{ marginTop: onBack ? 12 : 0 }}>Off-season feed</div>
       <h2 className="page-title">Glory Shots</h2>
       <p className="page-sub">
         Summer catches only — the between-tournaments bragging board.

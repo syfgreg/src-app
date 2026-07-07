@@ -4,6 +4,7 @@ import type {
   AppNotification,
   CatchEntry,
   GloryPic,
+  Newsletter,
   OutboxItem,
   RecordEntry,
   Settings,
@@ -26,6 +27,7 @@ const KEY_FIELD: Record<OutboxItem["table"], string> = {
   profiles: "id",
   settings: "id",
   records: "species",
+  newsletters: "id",
 };
 
 // ---------- row mappers (snake_case ⇄ camelCase) ----------------------------
@@ -89,6 +91,17 @@ const toSettings = (r: any): Settings => ({
   skateBaselinePPI: Number(r.skate_baseline_ppi),
   species: r.species,
   offSeasonMode: r.off_season_mode,
+  state: r.tournament_state ?? "SETUP",
+  publishedAt: r.published_at ? ms(r.published_at) : undefined,
+  reviewedAnglers: Array.isArray(r.reviewed_anglers) ? r.reviewed_anglers : [],
+});
+
+const toNewsletter = (r: any): Newsletter => ({
+  id: r.id,
+  title: r.title,
+  body: r.body,
+  author: r.author,
+  createdAt: ms(r.created_at),
 });
 
 async function toNotification(r: any): Promise<AppNotification> {
@@ -99,13 +112,14 @@ async function toNotification(r: any): Promise<AppNotification> {
 // ---------- initial pull ----------------------------------------------------
 export async function pullAll() {
   if (!supabase) return;
-  const [profiles, settings, records, catches, glory, notifs] = await Promise.all([
+  const [profiles, settings, records, catches, glory, notifs, newsletters] = await Promise.all([
     supabase.from("profiles").select("*"),
     supabase.from("settings").select("*").eq("id", 1).maybeSingle(),
     supabase.from("records").select("*"),
     supabase.from("catches").select("*"),
     supabase.from("glory_pics").select("*"),
     supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50),
+    supabase.from("newsletters").select("*").order("created_at", { ascending: false }),
   ]);
 
   if (profiles.data) await db.users.bulkPut(profiles.data.map(toUser));
@@ -113,6 +127,7 @@ export async function pullAll() {
   if (records.data) await db.records.bulkPut(records.data.map(toRecord));
   if (catches.data) await db.catches.bulkPut(catches.data.map(toCatch));
   if (glory.data) await db.gloryPics.bulkPut(glory.data.map(toGlory));
+  if (newsletters.data) await db.newsletters.bulkPut(newsletters.data.map(toNewsletter));
   if (notifs.data) {
     for (const n of notifs.data) await db.notifications.put(await toNotification(n));
   }
@@ -135,6 +150,7 @@ export function subscribe() {
   on("catches", async (r) => db.catches.put(toCatch(r)), async (r) => db.catches.delete(r.id));
   on("glory_pics", async (r) => db.gloryPics.put(toGlory(r)), async (r) => db.gloryPics.delete(r.id));
   on("records", async (r) => db.records.put(toRecord(r)), async (r) => db.records.delete(r.species));
+  on("newsletters", async (r) => db.newsletters.put(toNewsletter(r)), async (r) => db.newsletters.delete(r.id));
   on("settings", async (r) => db.settings.put(toSettings(r)), async () => {});
   on(
     "notifications",

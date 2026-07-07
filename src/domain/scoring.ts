@@ -38,6 +38,10 @@ export const DEFAULT_SETTINGS: Omit<Settings, "id"> = {
   skateBaselinePPI: 10,
   species: DEFAULT_SPECIES,
   offSeasonMode: false,
+  // Local/demo seed opens the tournament immediately; the live Supabase row
+  // defaults to SETUP so the M.O.C. explicitly starts it.
+  state: "LIVE",
+  reviewedAnglers: [],
 };
 
 export function isGamefish(cfg: SpeciesConfig): boolean {

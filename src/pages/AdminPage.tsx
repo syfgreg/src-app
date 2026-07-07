@@ -5,9 +5,12 @@ import {
   broadcast,
   decideCatch,
   deleteCatch,
+  endTournament,
   overrideCatch,
+  publishResults,
   setNickname,
   setRole,
+  startTournament,
   updateRecord,
   updateSettings,
 } from "../data/repository";
@@ -19,11 +22,11 @@ import { Icon } from "../components/Icon";
 import type { RoleTag, Settings } from "../domain/types";
 import { ROLE_LABELS } from "../domain/types";
 
-type Section = "catches" | "roster" | "scoring";
+type Section = "tournament" | "catches" | "roster" | "scoring";
 
 export function AdminPage({ onBack }: { onBack: () => void }) {
   const { user } = useApp();
-  const [section, setSection] = useState<Section>("catches");
+  const [section, setSection] = useState<Section>("tournament");
 
   if (user?.roleTag !== "MOC") {
     return (
@@ -48,6 +51,7 @@ export function AdminPage({ onBack }: { onBack: () => void }) {
       <div className="year-tabs">
         {(
           [
+            ["tournament", "Tournament"],
             ["catches", "Catches"],
             ["roster", "Roster"],
             ["scoring", "Scoring & AI"],
@@ -59,9 +63,122 @@ export function AdminPage({ onBack }: { onBack: () => void }) {
         ))}
       </div>
 
+      {section === "tournament" && <TournamentAdmin />}
       {section === "catches" && <CatchModeration />}
       {section === "roster" && <RosterAdmin />}
       {section === "scoring" && <ScoringAdmin />}
+    </div>
+  );
+}
+
+/* ---------- tournament lifecycle: start / end / publish ---------- */
+const STATE_COPY: Record<string, string> = {
+  SETUP: "Not started — anglers can't log catches yet.",
+  LIVE: "Live — anglers are logging catches; every fish counts instantly.",
+  ENDED: "Ended — submissions closed. Validate every scorecard, then publish.",
+  PUBLISHED: "Results are published and official.",
+};
+
+function TournamentAdmin() {
+  const settings = useLiveQuery(() => db.settings.get(1), []);
+  const year = settings?.tournamentYear ?? new Date().getFullYear();
+  const approved = useLiveQuery(
+    () =>
+      db.catches
+        .where("tournamentYear")
+        .equals(year)
+        .and((c) => c.status === "APPROVED")
+        .toArray(),
+    [year],
+    [],
+  );
+  const [busy, setBusy] = useState(false);
+  if (!settings) return null;
+
+  const state = settings.state ?? "SETUP";
+  const reviewed = new Set(settings.reviewedAnglers ?? []);
+  const anglerIds = [...new Set(approved.map((c) => c.userId))];
+  const validatedCount = anglerIds.filter((id) => reviewed.has(id)).length;
+  const allValidated = anglerIds.length > 0 && anglerIds.every((id) => reviewed.has(id));
+
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    try {
+      await fn();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card">
+      <h3>Tournament control</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "2px 0 4px" }}>
+        <span
+          className="tag"
+          style={{ background: "var(--flare)", color: "var(--on-accent)", borderColor: "var(--flare)" }}
+        >
+          {state}
+        </span>
+        <span style={{ color: "var(--sand-dim)", fontSize: 13.5 }}>{STATE_COPY[state]}</span>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        {state === "SETUP" && (
+          <button className="btn seafoam" disabled={busy} onClick={() => run(startTournament)}>
+            <Icon name="bolt" size={16} /> Start Tournament
+          </button>
+        )}
+
+        {state === "LIVE" && (
+          <button
+            className="btn danger"
+            disabled={busy}
+            onClick={() => {
+              if (confirm("End the tournament? Anglers can no longer log catches.")) run(endTournament);
+            }}
+          >
+            <Icon name="check" size={16} /> End Tournament
+          </button>
+        )}
+
+        {state === "ENDED" && (
+          <>
+            <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginBottom: 8 }}>
+              {validatedCount}/{anglerIds.length} scorecards validated.{" "}
+              {allValidated
+                ? "All clear — you can publish."
+                : "Validate every scorecard in the Scorecards view to enable publishing."}
+            </p>
+            <button
+              className="btn"
+              disabled={busy || !allValidated}
+              onClick={() => {
+                if (confirm("Publish final results to everyone? This finalizes the record book."))
+                  run(publishResults);
+              }}
+            >
+              <Icon name="trophy" size={16} /> Publish Results
+            </button>
+          </>
+        )}
+
+        {state === "PUBLISHED" && <p className="ok-note">Results are published. 🏆</p>}
+
+        {state !== "SETUP" && (
+          <button
+            className="btn ghost"
+            style={{ marginTop: 10 }}
+            disabled={busy}
+            onClick={() => {
+              if (confirm("Reset to SETUP for a new run? Catches are kept; the board reopens on Start."))
+                run(() => updateSettings({ state: "SETUP", reviewedAnglers: [] }));
+            }}
+          >
+            Reset to setup
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -29,7 +29,20 @@ export type IconName =
   | "fish"
   | "logout"
   | "send"
-  | "search";
+  | "search"
+  | "cloud"
+  | "cloud-sun"
+  | "cloud-rain"
+  | "cloud-drizzle"
+  | "cloud-snow"
+  | "cloud-fog"
+  | "cloud-lightning"
+  | "wind"
+  | "droplet"
+  | "thermometer"
+  | "arrow-up"
+  | "arrow-down"
+  | "share";
 
 const PATHS: Record<IconName, JSX.Element> = {
   scorecard: (
@@ -150,6 +163,61 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <circle cx="11" cy="11" r="6.5" />
       <path d="M20 20l-4.2-4.2" />
+    </>
+  ),
+  cloud: <path d="M17.5 18a4 4 0 0 0 .2-8 6 6 0 0 0-11.5 1.3A3.6 3.6 0 0 0 6.8 18Z" />,
+  "cloud-sun": (
+    <>
+      <circle cx="8" cy="7.5" r="3" />
+      <path d="M8 1.9V3.2M2.7 7.5H4M3.9 3.4l.9.9M12.1 3.4l-.9.9M2.9 12.6l.9-.9" />
+      <path d="M18 20a3.4 3.4 0 0 0 .2-6.8 5 5 0 0 0-9.6 1.1A3 3 0 0 0 9 20Z" />
+    </>
+  ),
+  "cloud-rain": (
+    <>
+      <path d="M17.5 15a3.8 3.8 0 0 0 .2-7.6 5.7 5.7 0 0 0-11 1.2A3.4 3.4 0 0 0 7 15Z" />
+      <path d="M8.5 18.5 7.5 21M12.5 18.5 11.5 21M16.5 18.5 15.5 21" />
+    </>
+  ),
+  "cloud-drizzle": (
+    <>
+      <path d="M17.5 15a3.8 3.8 0 0 0 .2-7.6 5.7 5.7 0 0 0-11 1.2A3.4 3.4 0 0 0 7 15Z" />
+      <path d="M9 18.5v1.6M13 18.5v1.6M16 18.5v1.6" />
+    </>
+  ),
+  "cloud-snow": (
+    <>
+      <path d="M17.5 14.5a3.8 3.8 0 0 0 .2-7.6 5.7 5.7 0 0 0-11 1.2A3.4 3.4 0 0 0 7 14.5Z" />
+      <path d="M9 18h.01M12 20h.01M15 18h.01M12 17h.01" />
+    </>
+  ),
+  "cloud-fog": (
+    <>
+      <path d="M17.5 13.5a3.8 3.8 0 0 0 .2-7.6 5.7 5.7 0 0 0-11 1.2A3.4 3.4 0 0 0 7 13.5Z" />
+      <path d="M5 17.5h14M7 21h10" />
+    </>
+  ),
+  "cloud-lightning": (
+    <>
+      <path d="M17.5 14a3.8 3.8 0 0 0 .2-7.6 5.7 5.7 0 0 0-11 1.2A3.4 3.4 0 0 0 7 14Z" />
+      <path d="M12.5 13.5 10 18h3l-2.5 4.5" />
+    </>
+  ),
+  wind: <path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5M3 16h15a2.5 2.5 0 1 1-2.5 2.5M3 12h9" />,
+  droplet: <path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11Z" />,
+  thermometer: (
+    <>
+      <path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0Z" />
+      <path d="M12 9.5v5.5" />
+    </>
+  ),
+  "arrow-up": <path d="M12 19V5M6 11l6-6 6 6" />,
+  "arrow-down": <path d="M12 5v14M6 13l6 6 6-6" />,
+  share: (
+    <>
+      <path d="M12 15V3.5" />
+      <path d="M8 7l4-4 4 4" />
+      <path d="M7 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1" />
     </>
   ),
 };

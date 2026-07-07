@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApp } from "./context/AppContext";
 import { Header } from "./components/Header";
+import { InstallPrompt } from "./components/InstallPrompt";
 import { TabBar, type Tab } from "./components/TabBar";
 import { LoginPage } from "./pages/LoginPage";
 import { ScorecardPage } from "./pages/ScorecardPage";
@@ -12,15 +13,20 @@ import { GloryPicsPage } from "./pages/GloryPicsPage";
 import { MemoriesPage } from "./pages/MemoriesPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AdminPage } from "./pages/AdminPage";
+import { NewsletterPage } from "./pages/NewsletterPage";
+import { ResultsPage } from "./pages/ResultsPage";
+import { ScorecardsReviewPage } from "./pages/ScorecardsReviewPage";
 import { Icon } from "./components/Icon";
 
 export type Screen =
   | Tab
   | "records"
-  | "glory"
   | "memories"
   | "profile"
-  | "admin";
+  | "admin"
+  | "newsletter"
+  | "results"
+  | "scorecards";
 
 export default function App() {
   const { user, ready } = useApp();
@@ -41,7 +47,7 @@ export default function App() {
 
   if (!user) return <LoginPage />;
 
-  const tab: Tab = (["leaderboard", "submit", "rules", "more"] as Tab[]).includes(
+  const tab: Tab = (["leaderboard", "submit", "glory", "rules", "more"] as Tab[]).includes(
     screen as Tab,
   )
     ? (screen as Tab)
@@ -50,17 +56,21 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header />
-      {screen === "leaderboard" && <ScorecardPage />}
+      <InstallPrompt />
+      {screen === "leaderboard" && <ScorecardPage onViewResults={() => setScreen("results")} />}
       {screen === "submit" && <SubmitCatchPage onDone={() => setScreen("leaderboard")} />}
       {screen === "rules" && <RulesPage />}
       {screen === "more" && <MorePage onNavigate={setScreen} />}
       {screen === "records" && <RecordsPage onBack={() => setScreen("more")} />}
-      {screen === "glory" && <GloryPicsPage onBack={() => setScreen("more")} />}
+      {screen === "glory" && <GloryPicsPage />}
       {screen === "memories" && <MemoriesPage onBack={() => setScreen("more")} />}
       {screen === "profile" && (
         <ProfilePage userId={user.id} onBack={() => setScreen("more")} />
       )}
       {screen === "admin" && <AdminPage onBack={() => setScreen("more")} />}
+      {screen === "newsletter" && <NewsletterPage onBack={() => setScreen("more")} />}
+      {screen === "results" && <ResultsPage onBack={() => setScreen("more")} />}
+      {screen === "scorecards" && <ScorecardsReviewPage onBack={() => setScreen("more")} />}
       <TabBar active={tab} onChange={(t) => setScreen(t)} />
     </div>
   );

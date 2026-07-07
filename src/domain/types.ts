@@ -17,6 +17,9 @@ export type GearType = "BAIT" | "LURE";
 
 export type CatchStatus = "PENDING" | "APPROVED" | "REJECTED";
 
+/** Tournament lifecycle: SETUP → LIVE (submissions open) → ENDED (M.O.C. reviews) → PUBLISHED (results out). */
+export type TournamentState = "SETUP" | "LIVE" | "ENDED" | "PUBLISHED";
+
 // Primary keys are UUID strings so the same id is used in Supabase (source of
 // truth) and the local Dexie mirror. In local-only mode the client generates
 // them with crypto.randomUUID().
@@ -91,6 +94,21 @@ export interface Settings {
   skateBaselinePPI: number;
   species: SpeciesConfig[];
   offSeasonMode: boolean;
+  /** Tournament lifecycle state (defaults to SETUP on the server). */
+  state?: TournamentState;
+  /** ms epoch when results were published. */
+  publishedAt?: number;
+  /** userIds whose scorecards the M.O.C. has validated during end-of-tournament review. */
+  reviewedAnglers?: string[];
+}
+
+/** A dated bulletin the M.O.C. posts; every angler reads the feed. */
+export interface Newsletter {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  createdAt: number;
 }
 
 export interface RecordEntry {
@@ -111,7 +129,7 @@ export interface AppNotification {
 /** Offline write queue entry. Replayed against Supabase on reconnect. */
 export interface OutboxItem {
   id?: number;
-  table: "catches" | "glory_pics" | "notifications" | "profiles" | "settings" | "records";
+  table: "catches" | "glory_pics" | "notifications" | "profiles" | "settings" | "records" | "newsletters";
   op: "upsert" | "update" | "delete";
   key: string;
   payload: Record<string, unknown>;

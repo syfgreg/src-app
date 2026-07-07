@@ -14,7 +14,8 @@ export const useTheme = () => useContext(ThemeContext);
 function initialTheme(): Theme {
   const saved = localStorage.getItem(KEY);
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  // Default to dark; users who haven't chosen get the moody-beach look.
+  return "dark";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

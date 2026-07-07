@@ -3,6 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { useTheme } from "../context/ThemeContext";
 import { Icon } from "./Icon";
+import { WeatherButton } from "./WeatherButton";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -35,6 +36,7 @@ export function Header() {
           <div className="sub">Surf Fishing Tournament</div>
         </div>
         <div className="header-actions">
+          <WeatherButton />
           <button className="header-btn" onClick={toggle} aria-label="Toggle theme">
             <Icon name={theme === "dark" ? "sun" : "moon"} size={19} />
           </button>

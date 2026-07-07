@@ -68,8 +68,28 @@ create table if not exists public.settings (
   record_breaker_bonus numeric not null default 1000,
   skate_baseline_ppi   numeric not null default 10,
   species              jsonb not null,
-  off_season_mode      boolean not null default false
+  off_season_mode      boolean not null default false,
+  tournament_state     text not null default 'SETUP'
+                       check (tournament_state in ('SETUP','LIVE','ENDED','PUBLISHED')),
+  published_at         timestamptz,
+  reviewed_anglers     jsonb not null default '[]'::jsonb
 );
+-- Migration for an existing settings row (idempotent):
+alter table public.settings
+  add column if not exists tournament_state text not null default 'SETUP'
+    check (tournament_state in ('SETUP','LIVE','ENDED','PUBLISHED')),
+  add column if not exists published_at timestamptz,
+  add column if not exists reviewed_anglers jsonb not null default '[]'::jsonb;
+
+-- ---------- newsletters (M.O.C. bulletin feed) -------------------------------
+create table if not exists public.newsletters (
+  id         uuid primary key default gen_random_uuid(),
+  title      text not null,
+  body       text not null,
+  author     text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists newsletters_created_at_idx on public.newsletters (created_at desc);
 
 -- ---------- records ----------------------------------------------------------
 create table if not exists public.records (
@@ -135,6 +155,7 @@ alter table public.records       enable row level security;
 alter table public.catches       enable row level security;
 alter table public.glory_pics    enable row level security;
 alter table public.notifications enable row level security;
+alter table public.newsletters   enable row level security;
 
 -- profiles: everyone authed reads (leaderboard needs names); edit self; M.O.C. edits anyone
 drop policy if exists profiles_read   on public.profiles;
@@ -188,6 +209,13 @@ drop policy if exists notif_insert on public.notifications;
 create policy notif_read   on public.notifications for select to authenticated using (true);
 create policy notif_insert on public.notifications for insert to authenticated with check (true);
 
+-- newsletters: everyone reads; only M.O.C. writes
+drop policy if exists newsletters_read  on public.newsletters;
+drop policy if exists newsletters_write on public.newsletters;
+create policy newsletters_read  on public.newsletters for select to authenticated using (true);
+create policy newsletters_write on public.newsletters for all to authenticated
+  using (public.is_moc()) with check (public.is_moc());
+
 -- ============================================================================
 -- Realtime: broadcast row changes so every device's board updates live
 -- ============================================================================
@@ -197,6 +225,7 @@ alter publication supabase_realtime add table public.records;
 alter publication supabase_realtime add table public.glory_pics;
 alter publication supabase_realtime add table public.profiles;
 alter publication supabase_realtime add table public.settings;
+alter publication supabase_realtime add table public.newsletters;
 
 -- ============================================================================
 -- Storage buckets (public read, authenticated write)

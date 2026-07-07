@@ -8,11 +8,13 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   if (!user) return null;
 
   const items: { screen: Screen; icon: IconName; title: string; sub: string; mocOnly?: boolean }[] = [
+    { screen: "newsletter", icon: "message", title: "Newsletter", sub: "News & dispatches from the M.O.C." },
+    { screen: "results", icon: "trophy", title: "Final Results", sub: "Official standings when the tournament wraps" },
     { screen: "profile", icon: "user", title: "My Career", sub: "Stats, catches, Shiner Club history" },
     { screen: "records", icon: "award", title: "Record Book", sub: "Standing Sea Robin records by species" },
-    { screen: "glory", icon: "camera", title: "Glory Shots", sub: "Off-season feed — summer catches" },
     { screen: "memories", icon: "archive", title: "Memories Vault", sub: "The archive: SRC 1999–2001" },
-    { screen: "admin", icon: "shield", title: "M.O.C. Panel", sub: "Roster, catches, scoring config", mocOnly: true },
+    { screen: "scorecards", icon: "scorecard", title: "Scorecard Review", sub: "Validate every angler's card at tournament end", mocOnly: true },
+    { screen: "admin", icon: "shield", title: "M.O.C. Panel", sub: "Tournament, roster, catches, scoring", mocOnly: true },
   ];
 
   return (
