@@ -29,26 +29,64 @@ create table if not exists public.profiles (
   name       text not null,
   nickname   text,
   role_tag   text not null default 'JAFNG'
-             check (role_tag in ('MOC','GRAND_ROBIN','CHAMP','ANGLER','JAFNG')),
+             check (role_tag in ('MOC','GRAND_ROBIN','CHAMP','ANGLER','JAFNG','INACTIVE')),
   created_at timestamptz not null default now()
 );
 
--- create a profile automatically whenever an auth user signs up
+-- ---------- invites (pending roster pre-registrations) -----------------------
+-- Created here (before handle_new_user) because the trigger function reads it.
+create table if not exists public.invites (
+  id         uuid primary key default gen_random_uuid(),
+  email      text not null,
+  name       text,
+  role_tag   text not null default 'ANGLER'
+             check (role_tag in ('MOC','GRAND_ROBIN','CHAMP','ANGLER','JAFNG','INACTIVE')),
+  created_at timestamptz not null default now()
+);
+create index if not exists invites_email_idx on public.invites (lower(email));
+
+-- ---------- tournaments (named registry / history) ---------------------------
+-- The active tournament is the row whose year = settings.tournament_year.
+create table if not exists public.tournaments (
+  id              uuid primary key default gen_random_uuid(),
+  name            text not null,
+  year            int not null,
+  participant_ids jsonb not null default '[]'::jsonb,
+  created_at      timestamptz not null default now(),
+  published_at    timestamptz
+);
+create index if not exists tournaments_year_idx on public.tournaments (year);
+
+-- create a profile automatically whenever an auth user signs up.
+-- If the M.O.C. left a pending invite for this email, inherit its role (and
+-- name) instead of the default JAFNG, then consume the invite.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  invited record;
 begin
+  select * into invited from public.invites
+    where lower(email) = lower(new.email)
+    order by created_at desc
+    limit 1;
+
   insert into public.profiles (id, email, name, role_tag)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    'JAFNG'
+    coalesce(invited.name, new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    coalesce(invited.role_tag, 'JAFNG')
   )
   on conflict (id) do nothing;
+
+  if invited.id is not null then
+    delete from public.invites where lower(email) = lower(new.email);
+  end if;
+
   return new;
 end;
 $$;
@@ -72,7 +110,10 @@ create table if not exists public.settings (
   tournament_state     text not null default 'SETUP'
                        check (tournament_state in ('SETUP','LIVE','ENDED','PUBLISHED')),
   published_at         timestamptz,
-  reviewed_anglers     jsonb not null default '[]'::jsonb
+  reviewed_anglers     jsonb not null default '[]'::jsonb,
+  glory_fav_state      text not null default 'OFF'
+                       check (glory_fav_state in ('OFF','OPEN','CLOSED','PUBLISHED')),
+  roster_overrides     jsonb not null default '{}'::jsonb
 );
 -- Migration for an existing settings row (idempotent):
 alter table public.settings
@@ -125,6 +166,18 @@ create table if not exists public.catches (
 create index if not exists catches_year_idx on public.catches (tournament_year);
 create index if not exists catches_user_idx on public.catches (user_id);
 
+-- ---------- penalties (M.O.C. scoring deficits) ------------------------------
+create table if not exists public.penalties (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references public.profiles(id) on delete cascade,
+  tournament_year int not null,
+  description     text not null default '',
+  points          numeric not null default 0,
+  created_at      timestamptz not null default now()
+);
+create index if not exists penalties_user_idx on public.penalties (user_id);
+create index if not exists penalties_year_idx on public.penalties (tournament_year);
+
 -- ---------- glory pics (off-season feed) -------------------------------------
 create table if not exists public.glory_pics (
   id          uuid primary key default gen_random_uuid(),
@@ -133,6 +186,8 @@ create table if not exists public.glory_pics (
   description text,
   catch_date  timestamptz,
   comments    jsonb not null default '[]',
+  nominated_year int,                          -- set = on that year's Glory Shot Fav ballot
+  votes       jsonb not null default '[]',     -- profile ids that voted this shot the fav
   created_at  timestamptz not null default now()
 );
 
@@ -143,6 +198,19 @@ create table if not exists public.notifications (
   message    text not null,
   created_at timestamptz not null default now()
 );
+
+-- ---------- push subscriptions (Web Push device registrations) ---------------
+-- One row per installed device. Read only by the send-push function (service
+-- role, bypasses RLS) — never joined against by the client.
+create table if not exists public.push_subscriptions (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  endpoint   text not null unique,
+  p256dh     text not null,
+  auth       text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions (user_id);
 
 -- ============================================================================
 -- Row Level Security
@@ -156,6 +224,10 @@ alter table public.catches       enable row level security;
 alter table public.glory_pics    enable row level security;
 alter table public.notifications enable row level security;
 alter table public.newsletters   enable row level security;
+alter table public.tournaments   enable row level security;
+alter table public.invites       enable row level security;
+alter table public.penalties     enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 -- profiles: everyone authed reads (leaderboard needs names); edit self; M.O.C. edits anyone
 drop policy if exists profiles_read   on public.profiles;
@@ -216,6 +288,38 @@ create policy newsletters_read  on public.newsletters for select to authenticate
 create policy newsletters_write on public.newsletters for all to authenticated
   using (public.is_moc()) with check (public.is_moc());
 
+-- tournaments: everyone reads (history/participants); only M.O.C. writes
+drop policy if exists tournaments_read  on public.tournaments;
+drop policy if exists tournaments_write on public.tournaments;
+create policy tournaments_read  on public.tournaments for select to authenticated using (true);
+create policy tournaments_write on public.tournaments for all to authenticated
+  using (public.is_moc()) with check (public.is_moc());
+
+-- invites: only the M.O.C. reads or writes (the trigger consumes them via SECURITY DEFINER)
+drop policy if exists invites_read  on public.invites;
+drop policy if exists invites_write on public.invites;
+create policy invites_read  on public.invites for select to authenticated using (public.is_moc());
+create policy invites_write on public.invites for all to authenticated
+  using (public.is_moc()) with check (public.is_moc());
+
+-- penalties: everyone reads (angler sees own deficit); only the M.O.C. writes
+drop policy if exists penalties_read  on public.penalties;
+drop policy if exists penalties_write on public.penalties;
+create policy penalties_read  on public.penalties for select to authenticated using (true);
+create policy penalties_write on public.penalties for all to authenticated
+  using (public.is_moc()) with check (public.is_moc());
+
+-- push subscriptions: each device manages only its own registration
+drop policy if exists push_subs_read   on public.push_subscriptions;
+drop policy if exists push_subs_insert on public.push_subscriptions;
+drop policy if exists push_subs_update on public.push_subscriptions;
+drop policy if exists push_subs_delete on public.push_subscriptions;
+create policy push_subs_read   on public.push_subscriptions for select to authenticated using (user_id = auth.uid());
+create policy push_subs_insert on public.push_subscriptions for insert to authenticated with check (user_id = auth.uid());
+create policy push_subs_update on public.push_subscriptions for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy push_subs_delete on public.push_subscriptions for delete to authenticated using (user_id = auth.uid());
+
 -- ============================================================================
 -- Realtime: broadcast row changes so every device's board updates live
 -- ============================================================================
@@ -226,6 +330,9 @@ alter publication supabase_realtime add table public.glory_pics;
 alter publication supabase_realtime add table public.profiles;
 alter publication supabase_realtime add table public.settings;
 alter publication supabase_realtime add table public.newsletters;
+alter publication supabase_realtime add table public.tournaments;
+alter publication supabase_realtime add table public.invites;
+alter publication supabase_realtime add table public.penalties;
 
 -- ============================================================================
 -- Storage buckets (public read, authenticated write)
@@ -249,6 +356,13 @@ create policy "public read glory pics" on storage.objects for select
   using (bucket_id = 'glory-pics');
 create policy "authed write glory pics" on storage.objects for insert to authenticated
   with check (bucket_id = 'glory-pics');
+
+-- "backups" bucket is created lazily (server-side, service role) by the backup
+-- function on first run — no insert policy needed here since only that
+-- service-role client writes to it. M.O.C. reads it directly to download files.
+drop policy if exists "moc read backups" on storage.objects;
+create policy "moc read backups" on storage.objects for select to authenticated
+  using (bucket_id = 'backups' and public.is_moc());
 
 -- ============================================================================
 -- Seed: settings + official records (2019 rulebook, Section 5-H)

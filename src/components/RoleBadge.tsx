@@ -6,6 +6,7 @@ const CLS: Record<RoleTag, string> = {
   GRAND_ROBIN: "grand",
   ANGLER: "",
   JAFNG: "jafng",
+  INACTIVE: "",
 };
 
 export function RoleBadge({ role }: { role: RoleTag }) {

@@ -7,3 +7,8 @@ dist-ssr
 .netlify
 *.local
 .DS_Store
+searobin-import-package/
+Data Restore/
+__MACOSX/
+deno.lock
+supabase/.temp/

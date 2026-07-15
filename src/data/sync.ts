@@ -1,13 +1,17 @@
+import { type Table } from "dexie";
 import { db, osNotify } from "./db";
 import { cloudEnabled, supabase } from "./supabase";
 import type {
   AppNotification,
   CatchEntry,
   GloryPic,
+  Invite,
   Newsletter,
   OutboxItem,
+  Penalty,
   RecordEntry,
   Settings,
+  Tournament,
   User,
 } from "../domain/types";
 
@@ -28,6 +32,9 @@ const KEY_FIELD: Record<OutboxItem["table"], string> = {
   settings: "id",
   records: "species",
   newsletters: "id",
+  tournaments: "id",
+  invites: "id",
+  penalties: "id",
 };
 
 // ---------- row mappers (snake_case ⇄ camelCase) ----------------------------
@@ -71,6 +78,8 @@ const toGlory = (r: any): GloryPic => ({
   description: r.description ?? "",
   catchDate: ms(r.catch_date),
   comments: Array.isArray(r.comments) ? r.comments : [],
+  nominatedYear: r.nominated_year ?? undefined,
+  votes: Array.isArray(r.votes) ? r.votes : [],
   createdAt: ms(r.created_at),
 });
 
@@ -84,16 +93,13 @@ const toRecord = (r: any): RecordEntry => ({
 const toSettings = (r: any): Settings => ({
   id: 1,
   tournamentYear: r.tournament_year,
-  lureBonusPPI: Number(r.lure_bonus_ppi),
-  trophyMinInches: Number(r.trophy_min_inches),
-  trophyBonus: Number(r.trophy_bonus),
-  recordBreakerBonus: Number(r.record_breaker_bonus),
-  skateBaselinePPI: Number(r.skate_baseline_ppi),
   species: r.species,
   offSeasonMode: r.off_season_mode,
   state: r.tournament_state ?? "SETUP",
   publishedAt: r.published_at ? ms(r.published_at) : undefined,
   reviewedAnglers: Array.isArray(r.reviewed_anglers) ? r.reviewed_anglers : [],
+  gloryFavState: r.glory_fav_state ?? "OFF",
+  rosterOverrides: r.roster_overrides && typeof r.roster_overrides === "object" ? r.roster_overrides : {},
 });
 
 const toNewsletter = (r: any): Newsletter => ({
@@ -101,6 +107,32 @@ const toNewsletter = (r: any): Newsletter => ({
   title: r.title,
   body: r.body,
   author: r.author,
+  createdAt: ms(r.created_at),
+});
+
+const toTournament = (r: any): Tournament => ({
+  id: r.id,
+  name: r.name,
+  year: r.year,
+  participantIds: Array.isArray(r.participant_ids) ? r.participant_ids : [],
+  createdAt: ms(r.created_at),
+  publishedAt: r.published_at ? ms(r.published_at) : undefined,
+});
+
+const toInvite = (r: any): Invite => ({
+  id: r.id,
+  email: r.email,
+  name: r.name ?? undefined,
+  roleTag: r.role_tag,
+  createdAt: ms(r.created_at),
+});
+
+const toPenalty = (r: any): Penalty => ({
+  id: r.id,
+  userId: r.user_id,
+  tournamentYear: r.tournament_year,
+  description: r.description ?? "",
+  points: Number(r.points),
   createdAt: ms(r.created_at),
 });
 
@@ -112,15 +144,20 @@ async function toNotification(r: any): Promise<AppNotification> {
 // ---------- initial pull ----------------------------------------------------
 export async function pullAll() {
   if (!supabase) return;
-  const [profiles, settings, records, catches, glory, notifs, newsletters] = await Promise.all([
-    supabase.from("profiles").select("*"),
-    supabase.from("settings").select("*").eq("id", 1).maybeSingle(),
-    supabase.from("records").select("*"),
-    supabase.from("catches").select("*"),
-    supabase.from("glory_pics").select("*"),
-    supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50),
-    supabase.from("newsletters").select("*").order("created_at", { ascending: false }),
-  ]);
+  const [profiles, settings, records, catches, glory, notifs, newsletters, tournaments, invites, penalties] =
+    await Promise.all([
+      supabase.from("profiles").select("*"),
+      supabase.from("settings").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("records").select("*"),
+      supabase.from("catches").select("*"),
+      supabase.from("glory_pics").select("*"),
+      supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50),
+      supabase.from("newsletters").select("*").order("created_at", { ascending: false }),
+      // New tables — guarded so a project that hasn't run the migration still syncs the rest.
+      supabase.from("tournaments").select("*").order("created_at", { ascending: false }),
+      supabase.from("invites").select("*").order("created_at", { ascending: false }),
+      supabase.from("penalties").select("*"),
+    ]);
 
   if (profiles.data) await db.users.bulkPut(profiles.data.map(toUser));
   if (settings.data) await db.settings.put(toSettings(settings.data));
@@ -128,9 +165,32 @@ export async function pullAll() {
   if (catches.data) await db.catches.bulkPut(catches.data.map(toCatch));
   if (glory.data) await db.gloryPics.bulkPut(glory.data.map(toGlory));
   if (newsletters.data) await db.newsletters.bulkPut(newsletters.data.map(toNewsletter));
+  if (tournaments.data) await db.tournaments.bulkPut(tournaments.data.map(toTournament));
+  if (invites.data) await db.invites.bulkPut(invites.data.map(toInvite));
+  if (penalties.data) await db.penalties.bulkPut(penalties.data.map(toPenalty));
   if (notifs.data) {
     for (const n of notifs.data) await db.notifications.put(await toNotification(n));
   }
+
+  // Reconcile deletions: a cold pull otherwise only adds/updates, so rows
+  // deleted in the cloud would linger locally on a device that was offline when
+  // the delete happened. Remove local rows absent from the cloud — but keep any
+  // still pending upload in the outbox so offline-first writes aren't lost. Only
+  // reconcile tables whose fetch succeeded (data is null on error, [] when empty).
+  const pendingKeys = new Set((await db.outbox.toArray()).map((o) => o.key));
+  const reap = async (table: Table<unknown, string>, cloudRows: { id: string }[] | null) => {
+    if (!cloudRows) return;
+    const cloudIds = new Set(cloudRows.map((r) => r.id));
+    const localKeys = (await table.toCollection().primaryKeys()) as string[];
+    const toDelete = localKeys.filter((k) => !cloudIds.has(k) && !pendingKeys.has(k));
+    if (toDelete.length) await table.bulkDelete(toDelete);
+  };
+  await reap(db.catches, catches.data as { id: string }[] | null);
+  await reap(db.tournaments, tournaments.data as { id: string }[] | null);
+  await reap(db.penalties, penalties.data as { id: string }[] | null);
+  await reap(db.gloryPics, glory.data as { id: string }[] | null);
+  await reap(db.newsletters, newsletters.data as { id: string }[] | null);
+  await reap(db.invites, invites.data as { id: string }[] | null);
 }
 
 // ---------- realtime --------------------------------------------------------
@@ -151,6 +211,9 @@ export function subscribe() {
   on("glory_pics", async (r) => db.gloryPics.put(toGlory(r)), async (r) => db.gloryPics.delete(r.id));
   on("records", async (r) => db.records.put(toRecord(r)), async (r) => db.records.delete(r.species));
   on("newsletters", async (r) => db.newsletters.put(toNewsletter(r)), async (r) => db.newsletters.delete(r.id));
+  on("tournaments", async (r) => db.tournaments.put(toTournament(r)), async (r) => db.tournaments.delete(r.id));
+  on("invites", async (r) => db.invites.put(toInvite(r)), async (r) => db.invites.delete(r.id));
+  on("penalties", async (r) => db.penalties.put(toPenalty(r)), async (r) => db.penalties.delete(r.id));
   on("settings", async (r) => db.settings.put(toSettings(r)), async () => {});
   on(
     "notifications",
@@ -202,17 +265,25 @@ async function pushItem(item: OutboxItem) {
   if (error) throw error;
 }
 
-/** Push a write now; if offline or it fails, queue it for later replay. */
-export async function remoteWrite(item: OutboxItem) {
+/**
+ * Push a write now; if offline or it fails, queue it for later replay.
+ *
+ * `queueOnFail: false` makes the write best-effort — used for the optional
+ * tournaments/invites tables so that, if the additive migration hasn't been run
+ * yet, a failing write is dropped rather than jamming the shared outbox (whose
+ * flush stops on the first error) and blocking catch/settings sync.
+ */
+export async function remoteWrite(item: OutboxItem, opts: { queueOnFail?: boolean } = {}) {
   if (!cloudEnabled || !supabase) return; // local-only mode: Dexie is the truth
+  const queueOnFail = opts.queueOnFail ?? true;
   if (!navigator.onLine) {
-    await db.outbox.add(item);
+    if (queueOnFail) await db.outbox.add(item);
     return;
   }
   try {
     await pushItem(item);
   } catch {
-    await db.outbox.add(item);
+    if (queueOnFail) await db.outbox.add(item);
   }
 }
 

@@ -3,6 +3,17 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  build: {
+    // Desktop M.O.C. Command Center (command.html) is a second, independent
+    // entry point alongside the mobile app (index.html) — same build, same
+    // deploy, shares all src/data + src/domain code.
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        command: "command.html",
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -10,6 +21,7 @@ export default defineConfig({
       includeAssets: ["logo.png", "apple-touch-icon.png"],
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
+        importScripts: ["push-sw.js"],
         // Archive photos load on demand and cache for offline viewing
         runtimeCaching: [
           {

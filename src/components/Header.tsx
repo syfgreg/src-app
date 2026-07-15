@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { useTheme } from "../context/ThemeContext";
+import { useApp } from "../context/AppContext";
+import { subscribeToPush } from "../data/push";
 import { Icon } from "./Icon";
 import { WeatherButton } from "./WeatherButton";
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { theme, toggle } = useTheme();
+  const { user } = useApp();
   const notifications = useLiveQuery(
     () => db.notifications.orderBy("at").reverse().limit(40).toArray(),
     [],
@@ -17,8 +20,10 @@ export function Header() {
 
   const openDrawer = async () => {
     setOpen(true);
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
+    if ("Notification" in window) {
+      if (Notification.permission === "default") await Notification.requestPermission();
+      // Also covers anglers who granted permission before push existed on this deployment.
+      if (Notification.permission === "granted" && user) subscribeToPush(user.id).catch(() => {});
     }
     await db.notifications.toCollection().modify({ read: true });
   };

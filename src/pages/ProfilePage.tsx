@@ -4,6 +4,8 @@ import { RoleBadge } from "../components/RoleBadge";
 import { CatchCard } from "../components/CatchCard";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
+import { Badges } from "../components/Badges";
+import { findAccolade, shinerSeasons, presidencyYears } from "../domain/accolades";
 
 export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => void }) {
   const user = useLiveQuery(() => db.users.get(userId), [userId]);
@@ -12,6 +14,8 @@ export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => 
     [userId],
     [],
   );
+
+  const accolade = user ? findAccolade({ email: user.email, name: user.name }) : undefined;
 
   if (!user) return null;
 
@@ -40,6 +44,21 @@ export function ProfilePage({ userId, onBack }: { userId: string; onBack: () => 
         <RoleBadge role={user.roleTag} /> · on the roster since{" "}
         {new Date(user.createdAt).getFullYear()}
       </p>
+
+      {accolade && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          <h3 style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Icon name="award" size={17} /> Accolades
+          </h3>
+          <Badges accolade={accolade} />
+          <div style={{ color: "var(--sand-faint)", fontSize: 12.5 }}>
+            {accolade.careerTotal.toLocaleString()} career points · {accolade.years} tournaments
+            {presidencyYears(accolade).length > 0 ? ` · ${presidencyYears(accolade).length}× Shiner Club President` : ""}
+            {shinerSeasons(accolade) > 0 ? ` · ${shinerSeasons(accolade)} Shiner seasons` : ""}
+            {accolade.placeThisYear ? ` · #${accolade.placeThisYear} this year` : ""}
+          </div>
+        </div>
+      )}
 
       <div className="stat-grid stagger" style={{ marginBottom: 14 }}>
         <div className="stat">

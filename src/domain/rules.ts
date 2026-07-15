@@ -32,8 +32,8 @@ export const RULE_SECTIONS: RuleSection[] = [
   {
     id: "participants",
     title: "Participants & Invitees",
-    keywords: ["invite", "invitee", "participant", "roster", "24", "capacity", "prerequisite", "18", "male", "decline", "jafng", "rookie"],
-    text: `Only those receiving an official Invite may participate — an Official Sea Robin Invite Letter with authorized response form and return envelope. Accepting means returning the completed form with payment to Eric W. Keresty before the deadline. Capacity is 24 Participants plus the M.O.C. Declines are final; alternates are contacted immediately. Invitees must be males at least 18 years of age. Selection order: (1) Prior Year's Champion, (2) Sea Robin Grand Robins (3), (3) Prior Year's Participants, (4) Adult Children of Participants, (5) Others selected by the M.O.C.`,
+    keywords: ["invite", "invitee", "participant", "roster", "24", "capacity", "prerequisite", "21", "male", "decline", "jafng", "rookie", "grand robin"],
+    text: `Only those receiving an official Invite may participate — an Official Sea Robin Invite Letter with authorized response form and return envelope. Accepting means returning the completed form with payment to Eric W. Keresty before the deadline. Capacity is 24 Participants plus the M.O.C. Declines are final; alternates are contacted immediately. Invitees must be males at least 21 years of age. Selection order: (1) Prior Year's Champion, (2) Sea Robin Grand Robins, (3) Prior Year's Participants, (4) Other Invitees as selected by the M.O.C.`,
   },
   {
     id: "champion",
@@ -75,25 +75,32 @@ export const RULE_SECTIONS: RuleSection[] = [
     id: "scorecard",
     title: "Scorecard & Measuring",
     keywords: ["scorecard", "score card", "measure", "measuring", "tape", "yardstick", "36", "device", "wingtip", "nose", "tail", "zero"],
-    text: `Each Participant receives an individualized scorecard before the start; scorecards may not be shared. A completed scorecard must be turned in immediately at the end of the Tournament — failure means an automatic score of ZERO. Each species is assigned a point value per inch. Fish are measured from the tip of the nose to the tip of the tail; SKATES are measured wingtip to wingtip. All measuring uses an approved measuring device longer than the fish: any device producing exact measurements equal to or exceeding 36 inches (tape measures, yardsticks, folding extension rulers, extension tapes).`,
+    text: `Each Participant receives an individualized scorecard before the start; scorecards may not be shared. A completed scorecard must be turned in immediately at the end of the Tournament — failure (or turning it in more than 30 minutes after the ending time) means an automatic Total Score of ZERO. The scorecard groups fish into four categories: the Coveted Sea Robin, Game Fish Tier 1, Game Fish Tier 2, and Trash Fish (with a limit of 3 scorable Trash Fish per angler). Each species is assigned a size-banded point value per inch. Fish are measured from the tip of the nose to the tip of the tail; SKATES and RAYS are measured wingtip to wingtip. All measuring uses an approved measuring device longer than the fish: any device producing exact measurements equal to or exceeding 36 inches (tape measures, yardsticks, folding extension rulers, extension tapes).`,
   },
   {
     id: "scoring",
-    title: "Scores, Calculation & Tiebreakers",
-    keywords: ["score", "scores", "points", "calculation", "tie", "tiebreaker", "rounding", "final", "awards ceremony", "newsletter"],
-    text: `All final score calculations, including bonuses and penalties, are completed by the M.O.C. before the Awards Ceremony. Scores are final and subject to rounding by the M.O.C. Final scores are announced at the Award Ceremony and cannot be discussed by the M.O.C. before then. TIEBREAKER hierarchy for the top three slots: Highest Scoring Game Fish → Largest Game Fish → Most Game Fish → Highest Scoring Fish → Largest Fish → Most Fish → alternate method at the sole discretion of the M.O.C. All scores are displayed in descending order in the following year's newsletter. The M.O.C. fishes but is not eligible for prizes or Champion status.`,
+    title: "Scores, Point System & Tiebreakers",
+    keywords: ["score", "scores", "points", "ppi", "points per inch", "tier", "tier 1", "tier 2", "calculation", "tie", "tiebreaker", "rounding", "final", "trash limit", "full monty", "trifecta", "sea robin points"],
+    text: `Each species has a points-per-inch (PPI) value that is SIZE-BANDED, and total points = length × PPI for that band. The 2026 point system:
+• The Coveted Sea Robin — 500 PPI at any size.
+• Game Fish TIER 1 (Striped Bass, Flounder, Red Drum) — under 18" = 120 PPI; 18" and over = 200 PPI.
+• Game Fish TIER 2 (all other game fish) — under 13" = 50 PPI; 13" to under 18" = 100 PPI; 18" and over = 120 PPI.
+• TRASH FISH (Sharks, Skates, Rays, Toadfish, Oyster Crackers, Stargazers) — 0" to under 12" = 20 PPI; 12" to under 17" = 30 PPI; 17" and over = 50 PPI. Only the best THREE (3) scorable Trash Fish per angler count toward the score.
+THE FULL MONTY: +1,000 points to the angler who lands BOTH the Largest Game Fish and the Largest Trash Fish of the Tournament.
+All final calculations are completed by the M.O.C. before the Awards Ceremony; scores are final and subject to rounding. TIEBREAKER hierarchy for the top three slots: Highest Scoring Game Fish → Largest Game Fish → Most Game Fish → Highest Scoring Fish → Largest Fish → Most Fish → alternate method at the M.O.C.'s discretion. The M.O.C. fishes but is not eligible for prizes or Champion status.`,
   },
   {
     id: "trophy",
-    title: "Trophy Fish Clause",
-    keywords: ["trophy", "24", "bonus", "gamefish", "game fish", "trash fish", "exact"],
-    text: `Any GAMEFISH measuring over 24 inches is a Trophy Fish and receives bonus points per the official scorecard. Trash fish are NOT eligible for Trophy status. All Trophy Fish must be presented to the M.O.C. for official measurement — a fish over 24" not measured by the M.O.C. gets NO bonus points. After measurement the Participant may release or keep the fish per State law. Trophy measurements are never rounded — only exact measurements are used.`,
+    title: "Trophy Fish Clause & Lure Bonus",
+    keywords: ["trophy", "24", "16", "bonus", "lure", "artificial", "gamefish", "game fish", "trash fish", "exact"],
+    text: `LURE BONUS ("Score More with a Lure"): any Game Fish measuring 16" or greater landed on a bona-fide artificial lure earns an additional +100 PPI on that fish. NO BAIT is permitted on that fish, and the lure must be presented to the M.O.C. for validation.
+TROPHY FISH CLAUSE: any Game Fish measuring OVER 24" is a Trophy Fish and earns an additional +100 PPI on that fish only. Trash fish are NOT eligible for Trophy status. All Trophy Fish must be presented to the M.O.C. for official measurement — a fish over 24" not measured by the M.O.C. gets NO bonus. Trophy measurements are never rounded; only exact measurements are used.`,
   },
   {
     id: "record-breaker",
     title: "Record Breaker Clause",
-    keywords: ["record", "breaker", "record breaker", "bonus", "largest", "beat", "history"],
-    text: `Any Participant catching a fish longer than the current Sea Robin Record for that species receives bonus points per the official scorecard. All Record Breaker fish must be presented to the M.O.C. for official measurement or NO bonus applies. Only ONE fish per species can take Record Breaker status each year; if two Participants break the same record, the larger fish presented to the M.O.C. wins the bonus — if identical in size, both receive it. Record measurements are never rounded.`,
+    keywords: ["record", "breaker", "record breaker", "bonus", "largest", "beat", "history", "100"],
+    text: `Any Participant catching a fish longer than the current Sea Robin Record for that species earns an additional +100 PPI on that specific fish only. All Record Breaker fish must be presented to the M.O.C. for official measurement or NO bonus applies. Only ONE fish per species can take Record Breaker status each year; if two Participants break the same record, the larger fish presented to the M.O.C. wins the bonus — if identical in size, both receive it. Record measurements are never rounded.`,
   },
   {
     id: "exception",
@@ -114,10 +121,36 @@ export const RULE_SECTIONS: RuleSection[] = [
     text: `Prizes go to the top 3 scoring Participants. The Champion receives the coveted Champion's Cup — a leaping crystal fish atop a circular domed crystal base — gifted for a period not to exceed one year. If damaged while in a Champion's possession, that Champion pays for its replacement. The Cup must return to the Tournament every year without exception — failure to bring it means a ban from future Tournaments. Any Participant who won prior-year Tournament Apparel is EXPECTED to wear it each subsequent year (owner's choice of piece if multiple are owned).`,
   },
   {
+    id: "derek-clause",
+    title: "The Derek Clause (Unofficial Legend)",
+    keywords: ["hot dog", "hotdog", "hot dogs", "hotdogs", "derek", "34000", "34,000", "sleeping", "asleep", "easter egg", "secret", "legend", "hands", "biggest bonus", "most points"],
+    text: `THE DEREK CLAUSE (wholly unofficial, whispered only around the Saturday fire): legend holds that any Participant who successfully places hot dogs into Derek's sleeping hands — without waking him — shall be awarded a mythical 34,000 points. Be warned: these points are purely ceremonial. They never appear on any official scorecard, they cannot be validated by the M.O.C., and they will absolutely not count toward your Total Score. What you actually win is glory — eternal, unscored, and legendary. Attempt at your own risk; a woken Derek is a formidable Derek.`,
+  },
+  {
+    id: "sandimas-cheeseburgers",
+    title: "The Sandimas Cheeseburger Phenomenon (Unofficial Legend)",
+    keywords: ["cheeseburger", "cheeseburgers", "burger", "burgers", "mcdonalds", "mcdonald's", "mickey d", "food", "lunch", "fries", "nuggets", "sandimas", "santimaw", "mike santimaw", "fastball", "10:54", "when do cheeseburgers", "delivery", "arrive"],
+    text: `THE SANDIMAS CHEESEBURGER PHENOMENON (wholly unofficial, unscored, and yet more reliable than the tides): When do cheeseburgers arrive? There is no schedule — the beach simply knows. Typically, the instant Mike Santimaw (a.k.a. "Sandimas") either lands a fish OR is seized by the sacred urge to leave the beach — historically clocking in right around 10:54 a.m. on Tournament Day — he vanishes without a word or a goodbye. He then resurfaces, as if summoned by the Golden Arches themselves, bearing bags of McDonald's in truly biblical mass quantities: cheeseburgers, fries, and nuggets, stuffed to bursting. Distribution proceeds down the beach by one of two sacred methods — the gentle direct hand-off, or the entirely unsolicited fastball delivered squarely into an unsuspecting Participant's chest. Keep your hands up and your eyes open. Nutritional value: debatable. Morale value: immeasurable. Points awarded: zero, always — but the legend feeds on.`,
+  },
+  {
+    id: "three-room-vacation-home",
+    title: "The 3-Room Vacation Home (Unofficial Legend)",
+    keywords: ["3 room", "three room", "3-room", "vacation home", "tent", "the hilary", "hilary", "propane", "propane heat", "heat", "cabin", "shelter", "palace", "canvas", "sandimas", "santimaw", "spot", "tony", "greg hudson", "john friscia", "friscia", "residents", "camp", "sleep", "retired", "2016"],
+    text: `THE 3-ROOM VACATION HOME (unofficial, un-zoned, retired since 2016): Sandimas's legendary beach mansion — a Timberline Basin 12-Sleeper instant cabin (poly-weave, moss-green and bone-white; strictly NO canvas), three whole rooms and a front door you could walk through standing up. Its honored tenants over the years: Mike Santimaw ("Sandimas," landlord, master suite), Tony "Spot," Greg Hudson, and John Friscia. At its peak it had actual PROPANE HEAT piped inside — a luxury so obscene the tides got jealous. It was the glorious upgrade to "The Hilary," the massive old CANVAS tent that reigned before it. Retired in 2016 and no longer in service. Nightly rate: zero points, always. Reservations: closed — ask the ghosts of tournaments past.`,
+  },
+  {
     id: "jurisdiction",
     title: "Additional Regulations & Jurisdiction",
     keywords: ["jurisdiction", "final", "decision", "infraction", "malfeasance", "corrupt", "liability", "responsible"],
     text: `Any Participant operating outside these rules is disqualified and barred from subsequent Tournaments. All infractions are investigated; all final decisions rest solely with E.W. Keresty acting as Master of Ceremonies (A.A.M.O.C.) of the S.R.C.S.F.T. Malfeasance not explicitly covered by the rules is regulated solely and without debate by the A.A.M.O.C. The A.A.M.O.C. is not responsible for losses or injuries; participation implies acceptance of all terms as written.`,
+  },
+  {
+    id: "shiner-club",
+    title: "The Shiner & The Shiner Club President",
+    keywords: ["shiner", "shiner club", "president", "goose egg", "goose", "egg", "blank", "blanked", "skunk", "skunked", "zero points", "zero", "no fish", "dq", "abd", "disqualified", "abandoned", "streak", "club"],
+    text: `THE SHINER: A "Shiner" is a Participant who fished a given year's Tournament and finished it having caught zero scoring fish — a blank, a goose egg. It requires participation: sitting a year out is not a Shiner, it is simply an absence. A Shiner is judged at the final, published standings. Note two statuses that are NOT Shiners because the angler did not validly finish at zero: DQ (Disqualified) and ABD (Abandoned the Tournament). Neither counts as a Shiner, and either one breaks a Shiner streak.
+
+THE SHINER CLUB PRESIDENT: Each year the Club crowns a President — a tongue-in-cheek crown for the proudest blanker of them all. To be eligible you must be a Shiner in the current year. Among the current year's Shiners, the Presidency goes to the one with the longest ACTIVE Shiner streak: the most consecutive years, ending with and including the current year, in which they participated and blanked (a scored year, a DQ, an ABD, or a year sat out all break the streak). If two or more are tied, the office goes to whoever most recently held the Presidency before; if that still cannot separate them, the M.O.C.'s ruling is final. If nobody blanks in a given year, the office sits vacant. The crown is worn with a grin, defended with a shrug, and passed to whoever out-blanks you next.`,
   },
 ];
 

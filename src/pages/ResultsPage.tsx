@@ -2,6 +2,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
+import { computeStandings } from "../domain/standings";
 
 /**
  * Final standings, revealed once the M.O.C. publishes. Ranked by total points
@@ -19,6 +20,11 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
         .equals(year)
         .and((c) => c.status === "APPROVED")
         .toArray(),
+    [year],
+    [],
+  );
+  const penalties = useLiveQuery(
+    () => db.penalties.where("tournamentYear").equals(year).toArray(),
     [year],
     [],
   );
@@ -43,16 +49,25 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
     );
   }
 
-  const totals = new Map<string, { pts: number; count: number }>();
-  for (const c of catches) {
-    const t = totals.get(c.userId) ?? { pts: 0, count: 0 };
-    t.pts += c.pointValue;
-    t.count += 1;
-    totals.set(c.userId, t);
-  }
-  const standings = [...totals.entries()]
-    .map(([uid, t]) => ({ u: users.find((x) => x.id === uid), uid, ...t }))
-    .sort((a, b) => b.pts - a.pts);
+  // Official standings: trash-3 cap, Full Monty, penalties, and tie-breaks.
+  // The M.O.C. is shown in rightful order but is NOT prize-eligible, so prize
+  // ranks skip them.
+  const penByUser = new Map<string, number>();
+  for (const p of penalties) penByUser.set(p.userId, (penByUser.get(p.userId) ?? 0) + p.points);
+  let prizeRank = 0;
+  const standings = computeStandings(catches, penByUser).map((s) => {
+    const u = users.find((x) => x.id === s.userId);
+    const isMoc = u?.roleTag === "MOC";
+    return {
+      uid: s.userId,
+      u,
+      pts: s.total,
+      count: s.approvedCount,
+      fullMonty: s.fullMonty,
+      isMoc,
+      rank: isMoc ? null : ++prizeRank,
+    };
+  });
 
   const recordsSet = records.filter((r) => r.year === year);
 
@@ -76,19 +91,24 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
         </div>
       ) : (
         <div className="stagger">
-          {standings.map((s, i) => (
+          {standings.map((s) => (
             <div
-              className={`lb-row ${i === 0 ? "first" : i === 1 ? "second" : i === 2 ? "third" : ""}`}
+              className={`lb-row ${s.rank === 1 ? "first" : s.rank === 2 ? "second" : s.rank === 3 ? "third" : ""}`}
               key={s.uid}
             >
-              <div className="rank">{i + 1}</div>
+              <div className="rank">{s.rank ?? "—"}</div>
               <div className="who">
-                <div className="name">
-                  {s.u?.name ?? "Unknown angler"}
-                  {s.u?.nickname ? ` "${s.u.nickname}"` : ""}
+                <div className="name" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span>
+                    {s.u?.name ?? "Unknown angler"}
+                    {s.u?.nickname ? ` "${s.u.nickname}"` : ""}
+                  </span>
+                  {s.isMoc && <span className="tag moc">M.O.C.</span>}
+                  {s.fullMonty && <span className="tag honor">Full Monty</span>}
                 </div>
                 <div className="meta">
                   {s.count} verified {s.count === 1 ? "catch" : "catches"}
+                  {s.isMoc ? " · not prize-eligible" : ""}
                 </div>
               </div>
               <div className="pts">

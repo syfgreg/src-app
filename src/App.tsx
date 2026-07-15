@@ -4,6 +4,7 @@ import { Header } from "./components/Header";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { TabBar, type Tab } from "./components/TabBar";
 import { LoginPage } from "./pages/LoginPage";
+import { UpdatePasswordPage } from "./pages/UpdatePasswordPage";
 import { ScorecardPage } from "./pages/ScorecardPage";
 import { SubmitCatchPage } from "./pages/SubmitCatchPage";
 import { RulesPage } from "./pages/RulesPage";
@@ -15,7 +16,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { AdminPage } from "./pages/AdminPage";
 import { NewsletterPage } from "./pages/NewsletterPage";
 import { ResultsPage } from "./pages/ResultsPage";
-import { ScorecardsReviewPage } from "./pages/ScorecardsReviewPage";
+import { FindAnglerPage } from "./pages/FindAnglerPage";
 import { Icon } from "./components/Icon";
 
 export type Screen =
@@ -26,11 +27,18 @@ export type Screen =
   | "admin"
   | "newsletter"
   | "results"
-  | "scorecards";
+  | "scorecards"
+  | "find-angler";
 
 export default function App() {
-  const { user, ready } = useApp();
+  const { user, ready, recovery } = useApp();
   const [screen, setScreen] = useState<Screen>("leaderboard");
+  const [focusAngler, setFocusAngler] = useState<string | null>(null);
+
+  const viewAngler = (id: string) => {
+    setFocusAngler(id);
+    setScreen("admin"); // scorecard review now lives inside the M.O.C. Panel
+  };
 
   if (!ready) {
     return (
@@ -45,6 +53,10 @@ export default function App() {
     );
   }
 
+  // A password-reset link lands the user in a recovery session — collect the new
+  // password before anything else, whether or not a profile is loaded yet.
+  if (recovery) return <UpdatePasswordPage />;
+
   if (!user) return <LoginPage />;
 
   const tab: Tab = (["leaderboard", "submit", "glory", "rules", "more"] as Tab[]).includes(
@@ -57,7 +69,13 @@ export default function App() {
     <div className="app-shell">
       <Header />
       <InstallPrompt />
-      {screen === "leaderboard" && <ScorecardPage onViewResults={() => setScreen("results")} />}
+      {screen === "leaderboard" && (
+        <ScorecardPage
+          onViewResults={() => setScreen("results")}
+          onViewAngler={viewAngler}
+          onGoVote={() => setScreen("glory")}
+        />
+      )}
       {screen === "submit" && <SubmitCatchPage onDone={() => setScreen("leaderboard")} />}
       {screen === "rules" && <RulesPage />}
       {screen === "more" && <MorePage onNavigate={setScreen} />}
@@ -67,10 +85,16 @@ export default function App() {
       {screen === "profile" && (
         <ProfilePage userId={user.id} onBack={() => setScreen("more")} />
       )}
-      {screen === "admin" && <AdminPage onBack={() => setScreen("more")} />}
+      {screen === "admin" && (
+        <AdminPage
+          onBack={() => setScreen("more")}
+          focusAngler={focusAngler}
+          onFocusHandled={() => setFocusAngler(null)}
+        />
+      )}
       {screen === "newsletter" && <NewsletterPage onBack={() => setScreen("more")} />}
       {screen === "results" && <ResultsPage onBack={() => setScreen("more")} />}
-      {screen === "scorecards" && <ScorecardsReviewPage onBack={() => setScreen("more")} />}
+      {screen === "find-angler" && <FindAnglerPage onBack={() => setScreen("more")} />}
       <TabBar active={tab} onChange={(t) => setScreen(t)} />
     </div>
   );

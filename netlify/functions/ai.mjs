@@ -2,7 +2,7 @@
 // the Netlify environment (GEMINI_API_KEY); it is never shipped to the browser.
 // Two actions: "verify" (vision catch check) and "rules" (grounded chat).
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-flash-lite-latest";
 // Disable Gemini 2.5's default "thinking" — unneeded for species ID / rules Q&A,
 // and it conserves the free-tier token budget over a weekend of catches.
 const NO_THINKING = { thinkingConfig: { thinkingBudget: 0 } };
@@ -72,7 +72,7 @@ Angler's claim: species = "${species}", length = ${length} inches.
 Tournament species list: ${(speciesList || []).join(", ")}.
 
 1. Identify the fish in the photo. Pick the closest match from the species list (or name what you actually see if it is not on the list).
-2. Check whether a measuring device (tape measure, yardstick, ruler) is visible, and whether the claimed length is plausible given the photo. Skates are measured wingtip to wingtip.
+2. Check whether a measuring device (tape measure, yardstick, ruler) is visible, and whether the claimed length is plausible given the photo. Skates and rays are measured wingtip to wingtip; all other fish nose to tail.
 3. Give confidence 0-1 in your species identification, and short notes for the M.O.C.`,
           },
         ],
@@ -117,6 +117,8 @@ async function rules(apiKey, { question, grounding, fullRules, history }) {
       parts: [
         {
           text: `You are the official Rules Assistant of the Sea Robin Classic Surf Fishing Tournament (S.R.C.S.F.T.). Answer ONLY from the Official Rules and Regulations provided below. Be direct, cite the relevant rule section by name, and keep the tournament's tongue-in-cheek ceremonial tone (the M.O.C.'s word is final). If the rules don't cover something, say the M.O.C. will regulate it "solely and without debate."
+
+THE UNOFFICIAL LEGENDS: When the question is about one of the tournament's unofficial legends (any section titled "... (Unofficial Legend)" — e.g. the Derek Clause, the Sandimas Cheeseburger Phenomenon, the 3-Room Vacation Home), keep the tone playful and ceremonial but keep it SHORT and funny — a punchy few sentences that hit the key beats and named characters. Never pad it into a wall of text.
 
 MOST RELEVANT SECTIONS FOR THIS QUESTION:
 ${grounding || ""}

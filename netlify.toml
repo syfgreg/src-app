@@ -3,6 +3,13 @@
   publish = "dist"
   functions = "netlify/functions"
 
+# Desktop M.O.C. Command Center — a clean URL for the second entry point.
+# Must come before the SPA catch-all below (first match wins).
+[[redirects]]
+  from = "/command"
+  to = "/command.html"
+  status = 200
+
 # SPA fallback so client-side routing / deep links resolve to index.html.
 # Netlify resolves /.netlify/functions/* to the functions before redirects run,
 # so no explicit function passthrough is needed (and one starting with

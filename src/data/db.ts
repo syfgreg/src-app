@@ -3,10 +3,13 @@ import type {
   AppNotification,
   CatchEntry,
   GloryPic,
+  Invite,
   Newsletter,
   OutboxItem,
+  Penalty,
   RecordEntry,
   Settings,
+  Tournament,
   User,
 } from "../domain/types";
 
@@ -27,6 +30,9 @@ class SeaRobinDB extends Dexie {
   records!: Table<RecordEntry & { id?: string }, string>;
   notifications!: Table<AppNotification, string>;
   newsletters!: Table<Newsletter, string>;
+  tournaments!: Table<Tournament, string>;
+  invites!: Table<Invite, string>;
+  penalties!: Table<Penalty, string>;
   outbox!: Table<OutboxItem, number>;
 
   constructor() {
@@ -55,6 +61,15 @@ class SeaRobinDB extends Dexie {
     this.version(3).stores({
       newsletters: "id, createdAt",
     });
+    // v4 adds the tournament registry (history) and roster invites (additive).
+    this.version(4).stores({
+      tournaments: "id, year, createdAt",
+      invites: "id, email, createdAt",
+    });
+    // v5 adds M.O.C. scoring penalties (additive).
+    this.version(5).stores({
+      penalties: "id, userId, tournamentYear",
+    });
   }
 }
 
@@ -72,7 +87,7 @@ export async function hashPassword(password: string): Promise<string> {
 export function osNotify(message: string) {
   if ("Notification" in window && Notification.permission === "granted") {
     try {
-      new Notification("Sea Robin Classic", { body: message, icon: "/icon-192.png" });
+      new Notification("Notification", { body: message, icon: "/icon-192.png" });
     } catch {
       // Some mobile browsers require the service-worker path; the in-app feed still shows it.
     }

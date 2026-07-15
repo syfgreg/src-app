@@ -49,7 +49,7 @@ export function CatchCard({
               <Icon name="bolt" /> Record Breaker
             </span>
           )}
-          {entry.isSkate && <span className="tag">Skate Clause</span>}
+          {entry.isSkate && <span className="tag">Wingtip measure</span>}
           {entry.aiConfidence != null && (
             <span className="tag">
               <Icon name="sparkle" /> AI {Math.round(entry.aiConfidence * 100)}%

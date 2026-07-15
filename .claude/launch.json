@@ -4,18 +4,16 @@
     {
       "name": "sea-robin-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5199"],
-      "cwd": "/Users/michaelsantimaw/Documents/Claude/sea-robin-classic",
-      "port": 5199
+      "runtimeArgs": ["run", "dev", "--", "--port", "5174", "--strictPort"],
+      "cwd": "C:\\dev\\sea-robin-classic",
+      "port": 5174
     },
     {
-      "name": "src-dist-preview",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": [
-        "-c",
-        "cd /tmp/claude-501/-Users-michaelsantimaw-Documents-Claude/4c7bfed2-bf3b-4eef-b025-8f68aff29b7a/scratchpad/sea-robin-dist && exec python3 -m http.server 5200"
-      ],
-      "port": 5200
+      "name": "sea-robin-netlify-dev",
+      "runtimeExecutable": "netlify",
+      "runtimeArgs": ["dev"],
+      "cwd": "C:\\dev\\sea-robin-classic",
+      "port": 8888
     }
   ]
 }

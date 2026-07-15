@@ -49,7 +49,7 @@ export function RulesPage() {
   return (
     <div className="page">
       <div className="page-kicker">Official Rules &amp; Regulations</div>
-      <h2 className="page-title">Rules Assistant</h2>
+      <h2 className="page-title">Rules &amp; Question Assistant</h2>
       <p className="page-sub">
         Grounded in the Official S.R.C.S.F.T. Rules and Regulations. The M.O.C.'s decision is always
         final.
@@ -77,7 +77,7 @@ export function RulesPage() {
             {m.content.replace(/\*\*/g, "")}
           </div>
         ))}
-        {busy && <div className="bubble assistant">Consulting the rulebook…</div>}
+        {busy && <div className="bubble assistant">Consulting our SRC gods…</div>}
       </div>
 
       <div className="chat-input-row">

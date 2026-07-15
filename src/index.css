@@ -4,6 +4,11 @@
   --font-head: "Hanken Grotesk", system-ui, sans-serif;
   --font-body: "Hanken Grotesk", system-ui, sans-serif;
 
+  /* The "anti-honor" metallic family — deliberately NOT gold. Theme-agnostic
+     (metal reads the same in light + dark), tuned in one place. */
+  --shiner: #8f959d;    /* pewter — Shiner seasons */
+  --president: #b9a877; /* bronze — Shiner Club President */
+
   /* Motion system — strong custom curves (built-in easings are too weak). */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -19,12 +24,13 @@
   --line: #29303c;     /* hairline border */
   --sand: #e8eaef;     /* primary text */
   --sand-dim: #99a1ad; /* secondary text */
-  --sand-faint: #626b78;
+  --sand-faint: #89919d;
   --flare: #2dd4bf;    /* accent — ocean teal */
   --flare-deep: #14b8a6;
   --seafoam: #34d399;
   --danger: #f87171;
   --gold: #fbbf24;
+  --live: #ff7a18;        /* "live" status indicator — reads as a broadcast light, not an accent */
   --on-accent: #05120f;   /* text on any bright fill (accent / chips) */
   --logo-plate: #f4f5f7;
   --scrim: rgba(3, 7, 12, 0.62);
@@ -42,12 +48,13 @@
   --line: #e3e7ee;
   --sand: #131720;
   --sand-dim: #59616f;
-  --sand-faint: #97a0ad;
+  --sand-faint: #5f6775;
   --flare: #0d9488;
   --flare-deep: #0f766e;
   --seafoam: #059669;
   --danger: #dc2626;
   --gold: #d97706;
+  --live: #ea580c;        /* slightly deeper orange for contrast on the light-theme teal panel */
   --on-accent: #ffffff;
   --logo-plate: #ffffff;
   --scrim: rgba(15, 23, 30, 0.42);
@@ -152,7 +159,7 @@ body::before {
   border: 1px solid var(--line);
   color: var(--sand);
   border-radius: 12px;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   display: grid; place-items: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -306,7 +313,7 @@ body::before {
 @media (hover: hover) and (pointer: fine) {
   .btn.ghost:not(:disabled):hover { border-color: var(--flare); color: var(--flare); filter: none; }
 }
-.btn.small { width: auto; padding: 8px 14px; font-size: 14px; }
+.btn.small { width: auto; min-height: 44px; padding: 8px 14px; font-size: 14px; }
 .btn.danger { background: var(--danger); color: var(--on-accent); }
 .btn.seafoam { background: var(--seafoam); color: var(--on-accent); }
 .btn svg { flex-shrink: 0; }
@@ -338,6 +345,16 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--flare);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--flare) 22%, transparent);
 }
+/* Keyboard focus rings — visible for keyboard users, invisible on tap. */
+.btn:focus-visible,
+.collapse-head:focus-visible,
+.header-btn:focus-visible,
+.tab-bar button:focus-visible,
+.participant-chip:focus-within {
+  outline: 2px solid var(--flare);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
 
 .error-note { color: var(--danger); font-size: 14px; margin: 8px 0; }
 .ok-note { color: var(--seafoam); font-size: 14px; margin: 8px 0; }
@@ -365,6 +382,7 @@ input:focus, select:focus, textarea:focus {
 .tag.trophy { background: var(--gold); color: var(--on-accent); border-color: var(--gold); }
 .tag.record { background: var(--danger); color: var(--on-accent); border-color: var(--danger); }
 .tag.pending { color: var(--gold); border-color: var(--gold); background: transparent; }
+.tag.honor { color: var(--gold); border-color: var(--gold); background: transparent; }
 .tag.approved { color: var(--seafoam); border-color: var(--seafoam); background: transparent; }
 .tag.rejected { color: var(--danger); border-color: var(--danger); background: transparent; }
 
@@ -394,10 +412,11 @@ input:focus, select:focus, textarea:focus {
   width: 36px;
   text-align: center;
   color: var(--sand-faint);
+  font-variant-numeric: tabular-nums;
 }
 .lb-row.first {
   border-color: var(--gold);
-  box-shadow: var(--shadow-1), 0 0 22px rgba(232, 182, 76, 0.18);
+  box-shadow: var(--shadow-1), 0 0 22px color-mix(in srgb, var(--gold) 22%, transparent);
 }
 .lb-row.first .rank { color: var(--gold); }
 .lb-row.second .rank, .lb-row.third .rank { color: var(--sand); }
@@ -410,8 +429,158 @@ input:focus, select:focus, textarea:focus {
   font-size: 20px;
   color: var(--flare);
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .lb-row .pts small { display: block; font-size: 10px; color: var(--sand-faint); letter-spacing: 1px; }
+
+/* highlight a card jumped-to from the live leaderboard */
+.focus-flash {
+  animation: focusFlash 2.4s var(--ease-out, ease-out);
+}
+@keyframes focusFlash {
+  0%, 30% {
+    border-color: var(--flare);
+    box-shadow: var(--shadow-1), 0 0 0 2px var(--flare), 0 0 22px color-mix(in srgb, var(--flare) 28%, transparent);
+  }
+  100% {
+    border-color: var(--line);
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-flash { animation: none; }
+}
+
+/* ---------- find an angler ---------- */
+.search-field {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--ink-2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 0 12px; color: var(--sand-faint);
+}
+.search-field:focus-within { border-color: var(--flare); }
+.search-field input {
+  flex: 1; background: none; border: none; padding: 12px 0; color: var(--sand);
+  font: inherit; outline: none;
+}
+.season-list { display: flex; flex-direction: column; gap: 7px; }
+.season-row { display: flex; align-items: center; gap: 10px; }
+.season-year {
+  width: 40px; font-family: var(--font-head); font-size: 12px; color: var(--sand-dim);
+  font-variant-numeric: tabular-nums;
+}
+.season-shiner, .season-dq, .season-prez {
+  font-family: var(--font-head); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.6px; text-transform: uppercase; white-space: nowrap;
+}
+.season-shiner { color: var(--shiner); }
+.season-dq { color: var(--sand-faint); }        /* DQ / ABD — didn't finish */
+.season-prez { color: var(--president); }       /* presidential Shiner year — bronze */
+.season-bar-track { flex: 1; height: 10px; background: var(--ink-3); border-radius: 999px; overflow: hidden; }
+.season-bar {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--flare-deep), var(--flare));
+}
+.season-pts {
+  width: 62px; text-align: right; font-family: var(--font-display); font-weight: 700;
+  font-size: 13px; color: var(--sand); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- accreditation badges (My Career / Find an Angler) ---------- */
+.badge-wall { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 14px; margin: 6px 0 10px; }
+.badge-empty { color: var(--sand-faint); font-size: 13.5px; margin: 6px 0 10px; text-align: center; }
+.badge {
+  width: 92px; display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 9px;
+}
+.badge-medal {
+  position: relative; width: 76px; height: 76px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; isolation: isolate;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.16),
+    inset 0 -9px 16px rgba(0, 0, 0, 0.28);
+  border: 2px solid var(--gold);
+  transition: transform 0.18s var(--ease-out, ease);
+}
+.badge-medal::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%; z-index: -1;
+  background: conic-gradient(from 210deg, var(--gold), transparent 30% 70%, var(--gold));
+  opacity: 0.35;
+}
+.badge:hover .badge-medal { transform: translateY(-2px) scale(1.03); }
+.badge-shine {
+  position: absolute; top: 8px; left: 14px; width: 26px; height: 14px;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.4); filter: blur(2px);
+  transform: rotate(-18deg); pointer-events: none;
+}
+.badge-logo {
+  width: 44px; height: 44px; object-fit: contain;
+  background: #fff; border-radius: 50%; padding: 4px;
+}
+/* M.O.C. mascot portrait — sits large on the white medal, fully inside the circle.
+   Pinned in px because a %-height on a centered grid item won't resolve. */
+.badge-portrait {
+  max-width: 70px; max-height: 70px; width: auto; height: auto;
+  object-fit: contain; background: #fff;
+}
+.badge-count {
+  position: absolute; top: -5px; right: -5px; min-width: 25px; height: 25px;
+  padding: 0 6px; border-radius: 999px; background: var(--gold); color: #1a1205;
+  font-family: var(--font-display); font-weight: 800; font-size: 13.5px;
+  display: grid; place-items: center; border: 3px solid var(--ink-2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.badge-label {
+  font-family: var(--font-head); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.4px; line-height: 1.2; color: var(--sand-dim);
+  text-transform: uppercase;
+}
+/* variant fills */
+.badge-medal.v-champ  { background: radial-gradient(120% 120% at 30% 20%, #ffd76a, #d98a1f 70%, #a35d0e); }
+.badge-medal.v-record { background: radial-gradient(120% 120% at 30% 20%, #5eead4, #0d9488 72%, #0b5b53); border-color: var(--flare); }
+.badge-medal.v-record::after { background: conic-gradient(from 210deg, var(--flare), transparent 30% 70%, var(--flare)); }
+.badge-medal.v-elite  { background: radial-gradient(120% 120% at 30% 20%, #c4b5fd, #6d28d9 72%, #4c1d95); border-color: #a78bfa; }
+.badge-medal.v-elite::after { background: conic-gradient(from 210deg, #a78bfa, transparent 30% 70%, #a78bfa); }
+/* Shiner — the wry anti-badge: a dull, tarnished coin (fished the year, blanked).
+   No shine, muted pewter, and a pewter count pill (never gold — gold is for honors). */
+.badge-medal.v-shiner { background: radial-gradient(120% 120% at 30% 22%, #c4c8ce, #7c828b 60%, #464a52); border-color: color-mix(in srgb, var(--shiner) 60%, #000); }
+.badge-medal.v-shiner::after { display: none; } /* no gold ring on the anti-badge */
+.badge-medal.v-shiner .badge-shine { display: none; }
+.badge-medal.v-shiner .badge-count { background: color-mix(in srgb, var(--shiner) 74%, #000); color: #f1f2f4; border-color: var(--ink-2); }
+/* Shiner Club President — a pewter-bronze "office seal": distinct from the plain
+   Shiner coin, still muted (not a gold honor). */
+.badge-medal.v-prez { background: radial-gradient(120% 120% at 30% 22%, #d9c9a0, #9a8a63 60%, #5c5138); border-color: color-mix(in srgb, var(--president) 63%, #000); }
+.badge-medal.v-prez::after { background: conic-gradient(from 210deg, var(--president), transparent 30% 70%, var(--president)); }
+.badge-medal.v-prez .badge-count { background: color-mix(in srgb, var(--president) 63%, #000); color: #f6f1e6; border-color: var(--ink-2); }
+/* Grand Robin: full white circle to the edge + teal/green outer glow (matches M.O.C. treatment) */
+.badge-medal.v-gr {
+  background: #fff;
+  border-color: #fff;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 20px 5px rgba(45, 212, 191, 0.95),
+    0 0 42px 10px rgba(45, 212, 191, 0.45),
+    0 6px 16px rgba(0, 0, 0, 0.22);
+}
+.badge-medal.v-gr::after { display: none; }
+.badge-medal.v-gr .badge-shine { display: none; }
+/* M.O.C.: full white circle to the edge + bright gold outer glow (no dark ring/insets).
+   overflow:hidden clips the rectangular portrait to the circle (trims the empty white
+   corners) — the box-shadow glow lives outside the box, so it's unaffected. */
+.badge-medal.v-moc {
+  background: #fff;
+  border-color: #fff;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 20px 5px rgba(251, 191, 36, 0.95),
+    0 0 42px 10px rgba(251, 191, 36, 0.45),
+    0 6px 16px rgba(0, 0, 0, 0.22);
+}
+.badge-medal.v-moc::after { display: none; }
+.badge-medal.v-moc .badge-shine { display: none; }
+@media (prefers-reduced-motion: reduce) { .badge-medal { transition: none; } }
 
 /* ---------- catch cards ---------- */
 .catch-card {
@@ -432,7 +601,7 @@ input:focus, select:focus, textarea:focus {
 .catch-card .body { padding: 12px 14px; }
 .catch-card .headline { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .catch-card .headline .species { font-family: var(--font-head); font-weight: 700; font-size: 19px; text-transform: uppercase; letter-spacing: 1px; }
-.catch-card .headline .pts { margin-left: auto; color: var(--flare); font-weight: 700; font-size: 18px; font-family: var(--font-head); }
+.catch-card .headline .pts { margin-left: auto; color: var(--flare); font-weight: 700; font-size: 18px; font-family: var(--font-head); font-variant-numeric: tabular-nums; }
 .catch-card .meta { color: var(--sand-dim); font-size: 13px; margin-top: 4px; }
 .catch-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 
@@ -468,7 +637,7 @@ input:focus, select:focus, textarea:focus {
 .chat-input-row .btn { width: auto; padding: 12px 16px; }
 
 /* ---------- memories / glory pics ---------- */
-.year-tabs { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; }
+.year-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .year-tabs button {
   background: var(--ink-2);
   border: 1px solid var(--line);
@@ -583,7 +752,7 @@ input:focus, select:focus, textarea:focus {
 
 .ai-verdict { border-radius: 10px; padding: 10px 12px; font-size: 13.5px; margin-top: 10px; }
 .ai-verdict.good { background: rgba(87, 199, 163, 0.12); border: 1px solid var(--seafoam); }
-.ai-verdict.warn { background: rgba(232, 182, 76, 0.10); border: 1px solid var(--gold); }
+.ai-verdict.warn { background: color-mix(in srgb, var(--gold) 12%, transparent); border: 1px solid var(--gold); }
 
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .stat {
@@ -614,8 +783,9 @@ input:focus, select:focus, textarea:focus {
   letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.92;
 }
 .live-panel .live-dot {
-  width: 8px; height: 8px; border-radius: 50%; background: currentColor;
-  box-shadow: 0 0 0 0 currentColor;
+  width: 8px; height: 8px; border-radius: 50%;
+  color: var(--live); background: currentColor; /* bright orange when illuminated */
+  box-shadow: 0 0 6px 1px currentColor;
   animation: pulse-dot 1.8s var(--ease-out) infinite;
 }
 @keyframes pulse-dot {
@@ -624,14 +794,23 @@ input:focus, select:focus, textarea:focus {
   100% { opacity: 1; transform: scale(0.9); }
 }
 .live-panel .big-count {
-  font-family: var(--font-display); font-weight: 800; font-size: 62px;
+  font-family: var(--font-display); font-weight: 800; font-size: 72px;
   line-height: 1; letter-spacing: -2.5px; margin: 10px 0 0;
   font-variant-numeric: tabular-nums;
 }
 .live-panel .count-label { font-size: 15px; font-weight: 600; opacity: 0.9; margin-top: 4px; }
 .live-panel .big-count + .count-label { margin-bottom: 2px; }
-.live-panel .fish-deco {
-  position: absolute; right: -18px; top: -10px; opacity: 0.14; transform: rotate(-12deg);
+.live-panel .live-emblem {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 88%;
+  max-height: 150px;
+  width: auto;
+  max-width: 44%;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 /* ---------- results banner (published) ---------- */
@@ -668,14 +847,99 @@ input:focus, select:focus, textarea:focus {
 .scorecard-head .total { text-align: right; }
 .scorecard-head .total b { font-family: var(--font-display); font-weight: 800; font-size: 30px; color: var(--flare); font-variant-numeric: tabular-nums; display: block; line-height: 1; }
 .scorecard-head .total span { font-family: var(--font-head); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sand-faint); }
+
+/* collapsible scorecard header (a button styled like .scorecard-head) */
+.collapse-head {
+  width: 100%;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.collapse-head:active { transform: scale(0.995); }
+.collapse-head .muted-hint { color: var(--sand-faint); }
+.collapse-chevron {
+  color: var(--sand-dim);
+  transform: rotate(90deg);
+  transition: transform 0.2s var(--ease-out, ease);
+}
+.collapse-chevron.open { transform: rotate(270deg); }
+@media (prefers-reduced-motion: reduce) {
+  .collapse-chevron { transition: none; }
+}
 .sc-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .sc-row:last-child { border-bottom: none; }
 .sc-row .sc-species { flex: 1; font-weight: 600; min-width: 0; }
 .sc-row .sc-species small { display: block; color: var(--sand-faint); font-weight: 400; font-size: 12px; }
+.sc-row .sc-species small.sc-calc { color: var(--sand-dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
 .sc-row .sc-len { color: var(--sand-dim); font-size: 13px; width: 50px; text-align: right; font-variant-numeric: tabular-nums; }
 .sc-row .sc-pts { font-family: var(--font-display); font-weight: 700; color: var(--flare); width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
 .sc-row.dim { opacity: 0.55; }
 .sc-row.dim .sc-pts { color: var(--sand-dim); }
+
+/* needs-ruling alert (scorecard review) */
+.ruling-alert {
+  border: 1px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+.ruling-head {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--gold); font-family: var(--font-head); font-size: 15px; margin-bottom: 6px;
+}
+.ruling-row { padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--gold) 28%, transparent); }
+.ruling-row:first-of-type { border-top: none; }
+.ruling-reason { color: var(--gold); font-size: 12.5px; margin-top: 1px; }
+/* Darker amber for the small text on the light-mode peach tint (AA contrast). */
+[data-theme="light"] .ruling-head,
+[data-theme="light"] .ruling-reason { color: #b45309; }
+
+/* penalty assessment box */
+.penalty-box {
+  margin-top: 12px; padding: 12px;
+  border: 1px dashed var(--line); border-radius: 12px; background: var(--ink-3);
+}
+.penalty-title {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-head); text-transform: uppercase; letter-spacing: 1px;
+  font-size: 11px; color: var(--sand-dim); margin-bottom: 8px;
+}
+.penalty-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13.5px; }
+.tag.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+
+/* participant picker (start-new-tournament) */
+.participant-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.participant-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 13.5px; cursor: pointer; background: var(--ink-2);
+  transition: border-color 0.15s var(--ease-out, ease), background 0.15s var(--ease-out, ease);
+}
+.participant-chip:has(input:checked) { border-color: var(--flare); background: color-mix(in srgb, var(--flare) 12%, transparent); }
+.participant-chip input { margin: 0; }
+.participant-chip span { line-height: 1; }
+
+/* history rows (past tournaments, pending invites) */
+.history-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--line);
+}
+.history-row:last-child { border-bottom: none; }
+.history-name {
+  font-family: var(--font-display); font-weight: 700; font-size: 15.5px;
+  background: none; border: 1px solid transparent; border-radius: 8px;
+  padding: 3px 6px; margin: -3px -6px; width: 100%; color: inherit;
+}
+.history-name:hover { border-color: var(--line); }
+.history-name:focus { border-color: var(--flare); background: var(--ink-2); outline: none; }
 
 .admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .admin-table th {
@@ -858,6 +1122,82 @@ input:focus, select:focus, textarea:focus {
 .install-tip .install-close:active { transform: scale(0.9); }
 @media (hover: hover) and (pointer: fine) {
   .install-tip .install-close:hover { color: var(--sand); background: var(--ink-3); }
+}
+
+/* Tournament lifecycle stepper (M.O.C. panel) — Setup → Live → Ended → Published */
+.lifecycle { display: grid; grid-template-columns: repeat(4, 1fr); margin: 4px 0 12px; }
+.lc-step { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
+.lc-step::before {
+  content: ""; position: absolute; top: 12px; right: 50%; width: 100%; height: 2px;
+  background: var(--line); z-index: 0;
+}
+.lc-step:first-child::before { display: none; }
+.lc-step.done::before, .lc-step.current::before { background: var(--seafoam); }
+.lc-dot {
+  position: relative; z-index: 1; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ink-3); border: 1px solid var(--line); color: var(--sand-faint);
+  font-family: var(--font-head); font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.lc-step.done .lc-dot { background: var(--seafoam); border-color: var(--seafoam); color: var(--on-accent); }
+.lc-step.current .lc-dot {
+  background: var(--flare); border-color: var(--flare); color: var(--on-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--flare) 20%, transparent);
+}
+.lc-label {
+  font-family: var(--font-head); font-size: 10.5px; font-weight: 600; letter-spacing: 0.4px;
+  text-transform: uppercase; color: var(--sand-faint);
+}
+.lc-step.current .lc-label { color: var(--flare); }
+.lc-step.done .lc-label { color: var(--sand-dim); }
+
+.next-step {
+  display: flex; flex-direction: column; gap: 3px;
+  background: var(--ink-3); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; font-size: 13.5px; color: var(--sand); line-height: 1.4;
+}
+.next-step span {
+  font-family: var(--font-head); font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--flare);
+}
+
+/* Glory Shot Fav — voting section on the Glory Shots page + M.O.C. ballot thumbs */
+.glory-fav { border-color: var(--gold); }
+.glory-fav-head { display: flex; align-items: center; gap: 10px; color: var(--gold); margin-bottom: 12px; }
+.glory-fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.glory-fav-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--ink-3);
+  overflow: hidden;
+  cursor: pointer;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.glory-fav-card:active { transform: scale(0.98); }
+.glory-fav-card.voted { border-color: var(--flare); }
+.glory-fav-card.winner { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.glory-fav-card.readonly { cursor: default; }
+.glory-vote-banner { border-color: var(--gold); }
+.glory-fav-photo { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; }
+.glory-fav-body { padding: 8px 10px 10px; }
+.glory-fav-name { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 4px; color: var(--gold); }
+.glory-fav-desc {
+  font-size: 12.5px; color: var(--sand-dim); margin-top: 3px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.glory-fav-tally { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.glory-admin-thumb {
+  width: 46px; height: 46px; object-fit: cover; border-radius: 8px; flex: 0 0 auto;
+  border: 1px solid var(--line);
 }
 
 /* Accessibility — respect users who prefer less motion. Keep things appearing

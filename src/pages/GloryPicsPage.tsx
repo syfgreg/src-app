@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { addComment, postGlory } from "../data/repository";
+import { addComment, postGlory, voteGloryFav } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { Photo } from "../components/BlobImage";
 import { BackButton } from "../components/BackButton";
@@ -10,12 +10,41 @@ import { Icon } from "../components/Icon";
 export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
   const { user } = useApp();
   const settings = useLiveQuery(() => db.settings.get(1), []);
+  const year = settings?.tournamentYear ?? new Date().getFullYear();
   const pics = useLiveQuery(() => db.gloryPics.orderBy("createdAt").reverse().toArray(), [], []);
   const users = useLiveQuery(() => db.users.toArray(), [], []);
+  const active = useLiveQuery(async () => {
+    const list = await db.tournaments.where("year").equals(year).toArray();
+    return list.sort((a, b) => b.createdAt - a.createdAt)[0];
+  }, [year]);
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+
+  // Glory Shot Fav — the M.O.C.-curated nominees for this tournament, most-voted first.
+  const gloryFavState = settings?.gloryFavState ?? "OFF";
+  const votingOpen = gloryFavState === "OPEN";
+  // Tallies/results stay anonymous to participants until the M.O.C. publishes them.
+  const showResults = gloryFavState === "PUBLISHED";
+  const nominees = pics
+    .filter((p) => p.nominatedYear === year)
+    .sort((a, b) => (b.votes?.length ?? 0) - (a.votes?.length ?? 0) || a.createdAt - b.createdAt);
+  const roster = active?.participantIds ?? [];
+  // The M.O.C. runs the vote but can always cast one; otherwise it's the roster
+  // (or everyone, when no roster is set).
+  const eligible =
+    !!user && (user.roleTag === "MOC" || roster.length === 0 || roster.includes(user.id));
+  const canVote = votingOpen && eligible;
+  const myVoteId = user ? nominees.find((p) => (p.votes ?? []).includes(user.id))?.id : undefined;
+  const topVotes = nominees[0]?.votes?.length ?? 0;
+
+  // Tap a shot to vote; tap another to change; tap your pick to clear it. Free to
+  // change until the M.O.C. closes voting — that's the single finalize step.
+  const castVote = async (picId: string) => {
+    if (!user || !canVote) return;
+    await voteGloryFav(user.id, picId, year);
+  };
 
   const post = async () => {
     if (!photo || !user) return;
@@ -40,6 +69,72 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
         Summer catches only — the between-tournaments bragging board.
         {settings && !settings.offSeasonMode && " (The M.O.C. has the feed set to tournament mode.)"}
       </p>
+
+      {gloryFavState !== "OFF" && (
+        <div className="card glory-fav">
+          <div className="glory-fav-head">
+            <Icon name="trophy" size={20} />
+            <div>
+              <h3 style={{ margin: 0 }}>Glory Shot Fav!{showResults ? " — Winner!" : ""}</h3>
+              <div style={{ color: "var(--sand-dim)", fontSize: 13 }}>
+                {active?.name ?? `S.R.C. ${year}`}
+                {votingOpen
+                  ? eligible
+                    ? myVoteId
+                      ? " · tap another shot to change your vote"
+                      : " · tap a shot to cast your vote"
+                    : " · only tournament participants can vote"
+                  : gloryFavState === "CLOSED"
+                    ? " · voting is closed — winner announced soon"
+                    : " · the votes are in!"}
+              </div>
+            </div>
+          </div>
+
+          {nominees.length === 0 ? (
+            <p style={{ color: "var(--sand-faint)", fontSize: 14, margin: 0 }}>
+              The M.O.C. is finalizing the ballot — check back shortly.
+            </p>
+          ) : (
+            <div className="glory-fav-grid">
+              {nominees.map((p) => {
+                const author = users.find((u) => u.id === p.userId);
+                const count = p.votes?.length ?? 0;
+                const mine = p.id === myVoteId;
+                const isWinner = showResults && count > 0 && count === topVotes;
+                return (
+                  <button
+                    type="button"
+                    key={p.id}
+                    className={`glory-fav-card ${mine ? "voted" : ""} ${isWinner ? "winner" : ""} ${!canVote ? "readonly" : ""}`}
+                    onClick={() => castVote(p.id)}
+                    disabled={!canVote}
+                    aria-pressed={mine}
+                  >
+                    <Photo url={p.photoUrl} blob={p.photo} alt="Glory Shot Fav nominee" className="glory-fav-photo" />
+                    <div className="glory-fav-body">
+                      <div className="glory-fav-name">
+                        {isWinner && <Icon name="trophy" size={14} />} {author?.name ?? "Unknown angler"}
+                      </div>
+                      {p.description && <div className="glory-fav-desc">{p.description}</div>}
+                      <div className="glory-fav-tally">
+                        {isWinner && <span className="tag honor">🏆 Fav Winner</span>}
+                        {mine && <span className="tag approved">★ Your pick</span>}
+                        {/* Tallies stay hidden from participants until results are published. */}
+                        {showResults && (
+                          <span style={{ marginLeft: "auto", fontWeight: 700 }}>
+                            {count} {count === 1 ? "vote" : "votes"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <h3>Post a glory shot</h3>
