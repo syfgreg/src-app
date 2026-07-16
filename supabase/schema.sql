@@ -128,7 +128,9 @@ create table if not exists public.newsletters (
   title      text not null,
   body       text not null,
   author     text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Undeletable posts (e.g. the historical archive import) — enforced via RLS below.
+  protected  boolean not null default false
 );
 create index if not exists newsletters_created_at_idx on public.newsletters (created_at desc);
 
@@ -281,12 +283,19 @@ drop policy if exists notif_insert on public.notifications;
 create policy notif_read   on public.notifications for select to authenticated using (true);
 create policy notif_insert on public.notifications for insert to authenticated with check (true);
 
--- newsletters: everyone reads; only M.O.C. writes
-drop policy if exists newsletters_read  on public.newsletters;
-drop policy if exists newsletters_write on public.newsletters;
-create policy newsletters_read  on public.newsletters for select to authenticated using (true);
-create policy newsletters_write on public.newsletters for all to authenticated
+-- newsletters: everyone reads; only M.O.C. writes; protected posts can't be deleted
+drop policy if exists newsletters_read   on public.newsletters;
+drop policy if exists newsletters_write  on public.newsletters;
+drop policy if exists newsletters_insert on public.newsletters;
+drop policy if exists newsletters_update on public.newsletters;
+drop policy if exists newsletters_delete on public.newsletters;
+create policy newsletters_read   on public.newsletters for select to authenticated using (true);
+create policy newsletters_insert on public.newsletters for insert to authenticated
+  with check (public.is_moc());
+create policy newsletters_update on public.newsletters for update to authenticated
   using (public.is_moc()) with check (public.is_moc());
+create policy newsletters_delete on public.newsletters for delete to authenticated
+  using (public.is_moc() and not protected);
 
 -- tournaments: everyone reads (history/participants); only M.O.C. writes
 drop policy if exists tournaments_read  on public.tournaments;
@@ -364,6 +373,18 @@ drop policy if exists "moc read backups" on storage.objects;
 create policy "moc read backups" on storage.objects for select to authenticated
   using (bucket_id = 'backups' and public.is_moc());
 
+-- "newsletter-pdfs": public read (same convention as catch-photos/glory-pics),
+-- M.O.C.-only upload (matches newsletters_write).
+insert into storage.buckets (id, name, public)
+values ('newsletter-pdfs', 'newsletter-pdfs', true)
+on conflict (id) do nothing;
+drop policy if exists "public read newsletter pdfs" on storage.objects;
+drop policy if exists "moc write newsletter pdfs" on storage.objects;
+create policy "public read newsletter pdfs" on storage.objects for select
+  using (bucket_id = 'newsletter-pdfs');
+create policy "moc write newsletter pdfs" on storage.objects for insert to authenticated
+  with check (bucket_id = 'newsletter-pdfs' and public.is_moc());
+
 -- ============================================================================
 -- Seed: settings + official records (2019 rulebook, Section 5-H)
 -- ============================================================================
@@ -393,24 +414,30 @@ values (
 )
 on conflict (id) do nothing;
 
+-- Source: 2026 Official Rules, Section 5-H (matches src/domain/records.ts /
+-- migration-2026-records.sql — the older 2019-rulebook values this replaced
+-- are stale; keep these three in sync if the rulebook changes again).
 insert into public.records (species, holder, year, length_inches) values
-  ('Sea Robin', 'N/A — the Coveted remains uncaught', null, 0),
-  ('Skate', 'Greg Keresty', 2012, 29),
-  ('Shark', 'Dave Gonzalez', 2006, 39),
-  ('Eel', 'Sean Sullivan', 2007, 26),
-  ('Stargazer', 'Pete Dzien', 2013, 21.5),
-  ('Striped Bass', 'Peter Dzien', 2008, 26),
-  ('Red Drum', 'Dave Gonzalez', 2013, 25.5),
-  ('Black Drum', 'Sean Sullivan', 2018, 11),
-  ('Sheepshead', 'Mike Cooper', 2007, 11),
-  ('Bluefish', 'Eric Keresty', 2004, 17.5),
-  ('Flounder', 'George Mummert', 2009, 19.25),
-  ('Sea Trout', 'Mike Cooper', 2003, 16),
-  ('Spot', 'Will Koth', 2012, 6),
-  ('Croaker', 'N/A — open record', null, 0),
-  ('Kingfish', 'Steve Getsie', 2015, 13),
-  ('Spotted Hake', 'Mike Cooper', 2008, 12),
-  ('Puffer Fish', 'Charles Goins', 2016, 7)
+  ('Sea Robin',    'N/A — the Coveted remains uncaught', null, 0),
+  ('Striped Bass', 'Peter Dzien',   2008, 26),
+  ('Flounder',     'Jeff Kern',     2020, 20),
+  ('Red Drum',     'Dave Gonzalez', 2013, 25.5),
+  ('Black Drum',   'Sean Sullivan', 2018, 11),
+  ('Sheepshead',   'Mike Cooper',   2007, 11),
+  ('Bluefish',     'Eric Keresty',  2004, 17.5),
+  ('Sea Trout',    'Mike Cooper',   2003, 16),
+  ('Kingfish',     'Jerry Egan',    2022, 14.25),
+  ('Croaker',      'Will Koth',     2020, 7),
+  ('Spot',         'Dave Gonzalez', 2024, 10),
+  ('Spotted Hake', 'Mike Cooper',   2008, 12),
+  ('Silver Perch', 'Phill Hall',    2020, 8),
+  ('Puffer Fish',  'Fred Bubeck',   2019, 10),
+  ('Eel',          'Sean Sullivan', 2007, 26),
+  ('Cusk Eel',     'Dave Gonzalez', 2022, 8.5),
+  ('Skate',        'Greg Keresty',  2012, 29),
+  ('Shark',        'Dave Gonzalez', 2006, 39),
+  ('Ray',          'Greg Hudson (Butterfly)', 2023, 19.5),
+  ('Stargazer',    'Pete Dzien',    2013, 21.5)
 on conflict (species) do nothing;
 
 -- ============================================================================

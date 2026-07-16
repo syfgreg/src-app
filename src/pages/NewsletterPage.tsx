@@ -6,6 +6,25 @@ import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
 
+/** Render a URL inside the body as a short clickable link instead of the raw,
+ * often-overflowing address text. */
+function renderBody(body: string) {
+  const match = body.match(/(https?:\/\/\S+)/);
+  if (!match || match.index === undefined) return body;
+  const url = match[0];
+  const before = body.slice(0, match.index);
+  const after = body.slice(match.index + url.length);
+  return (
+    <>
+      {before}
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--flare)", fontWeight: 600 }}>
+        Click here
+      </a>
+      {after}
+    </>
+  );
+}
+
 /**
  * Newsletter bulletin: the M.O.C. composes dated posts; every angler reads the
  * feed. Read-only for non-M.O.C. roles.
@@ -88,7 +107,7 @@ export function NewsletterPage({ onBack }: { onBack: () => void }) {
               >
                 {p.title}
               </h3>
-              {isMoc && (
+              {isMoc && !p.protected && (
                 <button
                   className="header-btn"
                   style={{ width: 32, height: 32 }}
@@ -99,7 +118,7 @@ export function NewsletterPage({ onBack }: { onBack: () => void }) {
                 </button>
               )}
             </div>
-            <p style={{ whiteSpace: "pre-wrap", fontSize: 14.5, lineHeight: 1.55, marginTop: 6 }}>{p.body}</p>
+            <p style={{ whiteSpace: "pre-wrap", fontSize: 14.5, lineHeight: 1.55, marginTop: 6 }}>{renderBody(p.body)}</p>
             <div
               style={{
                 color: "var(--sand-faint)",

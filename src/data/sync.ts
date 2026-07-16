@@ -1,6 +1,7 @@
 import { type Table } from "dexie";
 import { db, osNotify } from "./db";
 import { cloudEnabled, supabase } from "./supabase";
+import { hasPushSubscribed } from "./push";
 import type {
   AppNotification,
   CatchEntry,
@@ -108,6 +109,7 @@ const toNewsletter = (r: any): Newsletter => ({
   body: r.body,
   author: r.author,
   createdAt: ms(r.created_at),
+  protected: !!r.protected,
 });
 
 const toTournament = (r: any): Tournament => ({
@@ -220,7 +222,9 @@ export function subscribe() {
     async (r) => {
       const isNew = !(await db.notifications.get(r.id));
       await db.notifications.put(await toNotification(r));
-      if (isNew) osNotify(r.message); // live broadcast to every device
+      // Push already covers foreground + background on devices that have it —
+      // showing both double-fires the same notification (see the M.O.C. report).
+      if (isNew && !hasPushSubscribed()) osNotify(r.message);
     },
     async (r) => db.notifications.delete(r.id),
   );

@@ -233,7 +233,7 @@ function TournamentAdmin() {
           <>
             <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginBottom: 8 }}>
               {anglerIds.length === 0
-                ? "No catches were logged this tournament — you can publish directly."
+                ? "No catches were logged this tournament. The sea made lots of shiners today — you can publish directly."
                 : (
                   <>
                     {validatedCount}/{anglerIds.length} scorecards validated.{" "}

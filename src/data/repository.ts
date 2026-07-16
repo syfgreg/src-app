@@ -414,6 +414,8 @@ export async function publishNewsletter(entry: { title: string; body: string; au
 }
 
 export async function deleteNewsletter(id: string) {
+  const n = await db.newsletters.get(id);
+  if (n?.protected) return; // RLS blocks this remotely too — don't even optimistically remove it locally
   await db.newsletters.delete(id);
   await remoteWrite({ table: "newsletters", op: "delete", key: id, payload: {}, at: now() });
 }

@@ -130,6 +130,8 @@ export interface Newsletter {
   body: string;
   author: string;
   createdAt: number;
+  /** Can't be deleted (e.g. the historical archive import) — enforced via RLS too. */
+  protected?: boolean;
 }
 
 /**

@@ -1,5 +1,14 @@
 import { cloudEnabled, supabase } from "./supabase";
 
+const SUBSCRIBED_KEY = "src-push-subscribed";
+
+/** Has this device already registered for Web Push? Used to skip the
+ * redundant foreground realtime-echo notification (see sync.ts) — push
+ * already covers foreground + background, so showing both double-fires. */
+export function hasPushSubscribed(): boolean {
+  return localStorage.getItem(SUBSCRIBED_KEY) === "1";
+}
+
 /** VAPID public keys are base64url; PushManager wants a raw Uint8Array. */
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -31,6 +40,7 @@ export async function subscribeToPush(userId: string): Promise<void> {
   await supabase
     .from("push_subscriptions")
     .upsert({ user_id: userId, endpoint, p256dh: keys.p256dh, auth: keys.auth }, { onConflict: "endpoint" });
+  localStorage.setItem(SUBSCRIBED_KEY, "1");
 }
 
 /**
