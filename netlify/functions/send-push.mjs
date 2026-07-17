@@ -14,9 +14,9 @@ import { createClient } from "@supabase/supabase-js";
 export async function handler(event) {
   if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method not allowed" };
 
-  let message;
+  let message, title;
   try {
-    ({ message } = JSON.parse(event.body || "{}"));
+    ({ message, title } = JSON.parse(event.body || "{}"));
   } catch {
     return { statusCode: 400, body: "Invalid JSON body." };
   }
@@ -33,7 +33,7 @@ export async function handler(event) {
   const { data: subs, error } = await supabase.from("push_subscriptions").select("*");
   if (error) return { statusCode: 500, body: JSON.stringify({ ok: false, error: error.message }) };
 
-  const payload = JSON.stringify({ title: "Notification", body: message });
+  const payload = JSON.stringify({ title: title || "Notification", body: message });
   const stale = [];
   let sent = 0;
   await Promise.all(

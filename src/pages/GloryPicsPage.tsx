@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { addComment, postGlory, voteGloryFav } from "../data/repository";
+import { addComment, lockGloryVote, postGlory, voteGloryFav } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { Photo } from "../components/BlobImage";
 import { BackButton } from "../components/BackButton";
@@ -35,15 +35,23 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
   // (or everyone, when no roster is set).
   const eligible =
     !!user && (user.roleTag === "MOC" || roster.length === 0 || roster.includes(user.id));
-  const canVote = votingOpen && eligible;
+  const locked = !!user && (settings?.gloryFavLockedVoters ?? []).includes(user.id);
+  const canVote = votingOpen && eligible && !locked;
   const myVoteId = user ? nominees.find((p) => (p.votes ?? []).includes(user.id))?.id : undefined;
   const topVotes = nominees[0]?.votes?.length ?? 0;
 
-  // Tap a shot to vote; tap another to change; tap your pick to clear it. Free to
-  // change until the M.O.C. closes voting — that's the single finalize step.
+  // Tap a shot to vote; tap another to change; tap your pick to clear it — free
+  // to change until you lock it in yourself, or the M.O.C. closes voting.
   const castVote = async (picId: string) => {
     if (!user || !canVote) return;
     await voteGloryFav(user.id, picId, year);
+  };
+
+  const lockVote = async () => {
+    if (!user) return;
+    if (confirm("This will lock in your vote — you won't be able to change it. Are you sure you want to proceed?")) {
+      await lockGloryVote(user.id);
+    }
   };
 
   const post = async () => {
@@ -79,11 +87,13 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
               <div style={{ color: "var(--sand-dim)", fontSize: 13 }}>
                 {active?.name ?? `S.R.C. ${year}`}
                 {votingOpen
-                  ? eligible
-                    ? myVoteId
-                      ? " · tap another shot to change your vote"
-                      : " · tap a shot to cast your vote"
-                    : " · only tournament participants can vote"
+                  ? locked
+                    ? " · your vote is locked in"
+                    : eligible
+                      ? myVoteId
+                        ? " · tap another shot to change your vote"
+                        : " · tap a shot to cast your vote"
+                      : " · only tournament participants can vote"
                   : gloryFavState === "CLOSED"
                     ? " · voting is closed — winner announced soon"
                     : " · the votes are in!"}
@@ -132,6 +142,20 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
                 );
               })}
             </div>
+          )}
+
+          {votingOpen && eligible && myVoteId && (
+            <>
+              {locked ? (
+                <p className="ok-note" style={{ marginTop: 12 }}>
+                  <Icon name="check" size={14} /> Your vote is locked in.
+                </p>
+              ) : (
+                <button className="btn seafoam" style={{ marginTop: 12 }} onClick={lockVote}>
+                  <Icon name="check" size={16} /> Submit &amp; lock in my vote
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

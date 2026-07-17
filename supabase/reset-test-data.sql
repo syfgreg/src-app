@@ -50,6 +50,7 @@ update public.settings set
   tournament_state  = 'SETUP',
   glory_fav_state   = 'OFF',
   reviewed_anglers  = '[]'::jsonb,
+  glory_fav_locked_voters = '[]'::jsonb,
   published_at      = null
 where id = 1;
 

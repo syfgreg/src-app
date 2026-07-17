@@ -41,7 +41,7 @@ import { computeStandings } from "../domain/standings";
 import type { RoleTag, Settings } from "../domain/types";
 import { ROLE_LABELS } from "../domain/types";
 
-export type Section = "tournament" | "catches" | "scorecards" | "roster" | "glory" | "scoring";
+export type Section = "tournament" | "catches" | "scorecards" | "roster" | "glory" | "scoring" | "notifications";
 
 interface AdminPageProps {
   onBack: () => void;
@@ -104,6 +104,7 @@ export function AdminPage({ onBack, focusAngler, onFocusHandled, initialSection 
             ["glory", "Glory Fav"],
             ["roster", "Roster"],
             ["scoring", "Scoring & AI"],
+            ["notifications", "Notifications"],
           ] as [Section, string][]
         ).map(([id, label]) => (
           <button key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>
@@ -127,6 +128,7 @@ export function AdminPage({ onBack, focusAngler, onFocusHandled, initialSection 
       {section === "roster" && <RosterAdmin />}
       {section === "glory" && <GloryFavAdmin />}
       {section === "scoring" && <ScoringAdmin />}
+      {section === "notifications" && <NotificationsAdmin />}
     </div>
   );
 }
@@ -763,6 +765,49 @@ function CatchModeration() {
         </CatchCard>
       ))}
     </>
+  );
+}
+
+/* ---------- notifications: free-text broadcast to everyone ---------- */
+function NotificationsAdmin() {
+  const LIMIT = 100;
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const send = async () => {
+    const msg = text.trim();
+    if (!msg) return;
+    setBusy(true);
+    try {
+      await broadcast(msg, "From the M.O.C.");
+      setText("");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card">
+      <h3>Send a broadcast</h3>
+      <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginTop: 0, marginBottom: 12 }}>
+        Sent to every angler, exactly as written, titled "From the M.O.C."
+      </p>
+      <label className="field">
+        <span>
+          Message ({text.length}/{LIMIT})
+        </span>
+        <textarea
+          rows={3}
+          value={text}
+          maxLength={LIMIT}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="High tide moved up to 6pm — plan accordingly."
+        />
+      </label>
+      <button className="btn" disabled={busy || !text.trim()} onClick={send}>
+        <Icon name="send" size={16} /> {busy ? "Sending…" : "Send to everyone"}
+      </button>
+    </div>
   );
 }
 

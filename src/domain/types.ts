@@ -121,6 +121,8 @@ export interface Settings {
    * anglers store their role on their profile instead.
    */
   rosterOverrides?: Record<string, RoleTag>;
+  /** userIds who've locked in their Glory Shot Fav vote (can't change it anymore). */
+  gloryFavLockedVoters?: string[];
 }
 
 /** A dated bulletin the M.O.C. posts; every angler reads the feed. */

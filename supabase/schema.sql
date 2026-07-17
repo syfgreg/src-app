@@ -113,14 +113,16 @@ create table if not exists public.settings (
   reviewed_anglers     jsonb not null default '[]'::jsonb,
   glory_fav_state      text not null default 'OFF'
                        check (glory_fav_state in ('OFF','OPEN','CLOSED','PUBLISHED')),
-  roster_overrides     jsonb not null default '{}'::jsonb
+  roster_overrides     jsonb not null default '{}'::jsonb,
+  glory_fav_locked_voters jsonb not null default '[]'::jsonb
 );
 -- Migration for an existing settings row (idempotent):
 alter table public.settings
   add column if not exists tournament_state text not null default 'SETUP'
     check (tournament_state in ('SETUP','LIVE','ENDED','PUBLISHED')),
   add column if not exists published_at timestamptz,
-  add column if not exists reviewed_anglers jsonb not null default '[]'::jsonb;
+  add column if not exists reviewed_anglers jsonb not null default '[]'::jsonb,
+  add column if not exists glory_fav_locked_voters jsonb not null default '[]'::jsonb;
 
 -- ---------- newsletters (M.O.C. bulletin feed) -------------------------------
 create table if not exists public.newsletters (

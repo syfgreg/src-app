@@ -84,10 +84,10 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /** Fire an OS notification when the PWA has permission (feed row is added by the caller). */
-export function osNotify(message: string) {
+export function osNotify(message: string, title?: string) {
   if ("Notification" in window && Notification.permission === "granted") {
     try {
-      new Notification("Notification", { body: message, icon: "/icon-192.png" });
+      new Notification(title || "Notification", { body: message, icon: "/icon-192.png" });
     } catch {
       // Some mobile browsers require the service-worker path; the in-app feed still shows it.
     }

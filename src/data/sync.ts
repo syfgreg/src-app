@@ -101,6 +101,7 @@ const toSettings = (r: any): Settings => ({
   reviewedAnglers: Array.isArray(r.reviewed_anglers) ? r.reviewed_anglers : [],
   gloryFavState: r.glory_fav_state ?? "OFF",
   rosterOverrides: r.roster_overrides && typeof r.roster_overrides === "object" ? r.roster_overrides : {},
+  gloryFavLockedVoters: Array.isArray(r.glory_fav_locked_voters) ? r.glory_fav_locked_voters : [],
 });
 
 const toNewsletter = (r: any): Newsletter => ({

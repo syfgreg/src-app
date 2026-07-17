@@ -3,6 +3,7 @@ import { cloudEnabled, supabase } from "./supabase";
 import { remoteWrite } from "./sync";
 import { triggerBackup } from "./backup";
 import { triggerPush } from "./push";
+import { scoreCatch } from "../domain/scoring";
 import type {
   CatchEntry,
   GloryComment,
@@ -104,14 +105,14 @@ export async function updateRecord(
   });
 }
 
-export async function broadcast(message: string) {
+export async function broadcast(message: string, title?: string) {
   const id = uuid();
   await db.notifications.add({ id, message, at: now(), read: false });
   // In cloud mode every device (incl. this one on echo) fires the OS push from
   // the realtime handler; local-only mode has no realtime, so notify here.
-  if (!cloudEnabled) osNotify(message);
+  if (!cloudEnabled) osNotify(message, title);
   await remoteWrite({ table: "notifications", op: "upsert", key: id, payload: { id, message }, at: now() });
-  triggerPush(message); // wakes devices even if fully closed (Web Push)
+  triggerPush(message, title); // wakes devices even if fully closed (Web Push)
 }
 
 export async function postGlory(entry: {
@@ -179,9 +180,11 @@ export async function unnominateGlory(picId: string) {
  * vote from every other nominee that year.
  */
 export async function voteGloryFav(userId: string, picId: string, year: number) {
-  // Voting is only accepted while the M.O.C. has the vote OPEN.
+  // Voting is only accepted while the M.O.C. has the vote OPEN and this
+  // voter hasn't locked their ballot in yet.
   const settings = await db.settings.get(1);
   if ((settings?.gloryFavState ?? "OFF") !== "OPEN") return;
+  if ((settings?.gloryFavLockedVoters ?? []).includes(userId)) return;
   const nominees = (await db.gloryPics.toArray()).filter((g) => g.nominatedYear === year);
   for (const g of nominees) {
     const prev = g.votes ?? [];
@@ -194,6 +197,15 @@ export async function voteGloryFav(userId: string, picId: string, year: number) 
     // network can't drop half a vote-switch and leave the old pick stuck.
     await remoteWrite({ table: "glory_pics", op: "update", key: g.id, payload: { votes: next }, at: now() });
   }
+}
+
+/** Lock in a participant's Glory Shot Fav vote — after this, they can't change it. */
+export async function lockGloryVote(userId: string) {
+  const settings = await db.settings.get(1);
+  if ((settings?.gloryFavState ?? "OFF") !== "OPEN") return;
+  const prev = settings?.gloryFavLockedVoters ?? [];
+  if (prev.includes(userId)) return;
+  await updateSettings({ gloryFavLockedVoters: [...prev, userId] });
 }
 
 export async function addComment(picId: string, comment: GloryComment) {
@@ -237,6 +249,7 @@ const SETTINGS_MAP: Record<string, string> = {
   reviewedAnglers: "reviewed_anglers",
   gloryFavState: "glory_fav_state",
   rosterOverrides: "roster_overrides",
+  gloryFavLockedVoters: "glory_fav_locked_voters",
 };
 
 /** Set the roster status (role) of a non-login member (historic angler by name key). */
@@ -272,7 +285,7 @@ export async function endTournament() {
   // Ending opens the Glory Shot Fav vote only if the M.O.C. already curated a
   // ballot; otherwise voting waits for the M.O.C.'s "Publish for Voting" button.
   if (balloted > 0) {
-    await updateSettings({ state: "ENDED", gloryFavState: "OPEN" });
+    await updateSettings({ state: "ENDED", gloryFavState: "OPEN", gloryFavLockedVoters: [] });
     await broadcast("🏁 Our Tournament has Ended! Go Vote for your Glory Shot Fav!");
   } else {
     await updateSettings({ state: "ENDED" });
@@ -284,7 +297,7 @@ export async function endTournament() {
 // ---------- Glory Shot Fav vote lifecycle (M.O.C., manual) -------------------
 /** Publish the curated ballot: opens voting and calls the field to the polls. */
 export async function openGloryVoting() {
-  await updateSettings({ gloryFavState: "OPEN" });
+  await updateSettings({ gloryFavState: "OPEN", gloryFavLockedVoters: [] });
   await broadcast("📸 Voting is OPEN — go pick your Glory Shot Fav!");
 }
 
@@ -344,6 +357,7 @@ export async function resetGloryVotes(year: number) {
     await db.gloryPics.update(g.id, { votes: [] });
     await remoteWrite({ table: "glory_pics", op: "update", key: g.id, payload: { votes: [] }, at: now() });
   }
+  await updateSettings({ gloryFavLockedVoters: [] });
 }
 
 /** Mark which anglers' scorecards the M.O.C. has validated (gates Publish). */
@@ -351,11 +365,64 @@ export async function setReviewedAnglers(ids: string[]) {
   await updateSettings({ reviewedAnglers: ids });
 }
 
+/** Among a group of competing record-breaker catches: largest length wins; an exact tie goes to the earliest catch. */
+function bestRecordCatch(catches: CatchEntry[]): CatchEntry {
+  return catches.reduce((best, c) =>
+    c.lengthInches > best.lengthInches || (c.lengthInches === best.lengthInches && c.createdAt < best.createdAt)
+      ? c
+      : best,
+  );
+}
+
 /**
- * Publish: finalize the record book from approved record-breakers (highest
- * length per species that still beats the standing record), flip to PUBLISHED,
- * and announce. Records are only rewritten here — never mid-tournament — so the
- * book can't churn while fish are still coming in.
+ * Settle every approved record-breaker catch for one species/tournament at
+ * once: the largest length (earliest catch breaks a tie) keeps the record
+ * and its bonus; every other competing catch loses the record-breaker bonus
+ * and is marked verified so it drops out of the M.O.C.'s ruling queue too.
+ * Called both when the M.O.C. rules on a record breaker mid-tournament and
+ * at Publish, so the two paths can never disagree.
+ */
+export async function resolveRecordBreakers(species: string, tournamentYear: number) {
+  const group = await db.catches
+    .where("tournamentYear")
+    .equals(tournamentYear)
+    .and((c) => c.status === "APPROVED" && c.isRecordBreaker && c.species.toLowerCase() === species.toLowerCase())
+    .toArray();
+  if (group.length === 0) return;
+
+  const winner = bestRecordCatch(group);
+  const records = await db.records.toArray();
+  const rec = records.find((r) => r.species.toLowerCase() === species.toLowerCase());
+  if (rec && winner.lengthInches > rec.lengthInches) {
+    const angler = await db.users.get(winner.userId);
+    await updateRecord(rec.species, {
+      holder: angler?.name ?? "An angler",
+      year: winner.tournamentYear,
+      lengthInches: winner.lengthInches,
+    });
+  }
+  if (!winner.verifiedBy) await overrideCatch(winner.id, { verifiedBy: "M.O.C. — official" });
+
+  // Losers: rescore with this species excluded from the records list, so
+  // Lure/Trophy bonuses stay correct but the record-breaker bonus drops.
+  const recordsWithoutSpecies = records.filter((r) => r.species.toLowerCase() !== species.toLowerCase());
+  for (const loser of group) {
+    if (loser.id === winner.id) continue;
+    const rescored = scoreCatch(loser.species, loser.lengthInches, loser.gearType, recordsWithoutSpecies);
+    await overrideCatch(loser.id, {
+      pointValue: rescored.points,
+      isTrophy: rescored.isTrophy,
+      isRecordBreaker: false,
+      verifiedBy: "M.O.C. — official (record claimed by another catch)",
+    });
+  }
+}
+
+/**
+ * Publish: finalize the record book from approved record-breakers, flip to
+ * PUBLISHED, and announce. Records are only rewritten here or when the
+ * M.O.C. rules on one mid-tournament — never any other time — so the book
+ * can't churn while fish are still coming in.
  */
 export async function publishResults() {
   const settings = await db.settings.get(1);
@@ -366,24 +433,8 @@ export async function publishResults() {
     .and((c) => c.status === "APPROVED" && c.isRecordBreaker)
     .toArray();
 
-  const bestBySpecies = new Map<string, CatchEntry>();
-  for (const c of approved) {
-    const key = c.species.toLowerCase();
-    const cur = bestBySpecies.get(key);
-    if (!cur || c.lengthInches > cur.lengthInches) bestBySpecies.set(key, c);
-  }
-
-  const records = await db.records.toArray();
-  for (const c of bestBySpecies.values()) {
-    const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());
-    if (!rec || c.lengthInches <= rec.lengthInches) continue;
-    const angler = await db.users.get(c.userId);
-    await updateRecord(rec.species, {
-      holder: angler?.name ?? "An angler",
-      year: c.tournamentYear,
-      lengthInches: c.lengthInches,
-    });
-  }
+  const species = new Set(approved.map((c) => c.species));
+  for (const s of species) await resolveRecordBreakers(s, year);
 
   const publishedAt = now();
   await updateSettings({ state: "PUBLISHED", publishedAt });
@@ -577,6 +628,12 @@ export async function startNewTournament(opts: {
     participantIds: opts.participantIds,
     createdAt: now(),
   });
-  await updateSettings({ tournamentYear: opts.year, state: "SETUP", reviewedAnglers: [], gloryFavState: "OFF" });
+  await updateSettings({
+    tournamentYear: opts.year,
+    state: "SETUP",
+    reviewedAnglers: [],
+    gloryFavState: "OFF",
+    gloryFavLockedVoters: [],
+  });
   await broadcast(`A new tournament is on the board: ${opts.name.trim() || `Sea Robin Classic ${opts.year}`}.`);
 }

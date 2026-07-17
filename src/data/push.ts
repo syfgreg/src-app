@@ -47,11 +47,11 @@ export async function subscribeToPush(userId: string): Promise<void> {
  * Fire-and-forget: ask the server to push this message to every registered
  * device. Mirrors triggerBackup() — never throws, never blocks the caller.
  */
-export function triggerPush(message: string): void {
+export function triggerPush(message: string, title?: string): void {
   if (!cloudEnabled) return;
   fetch("/.netlify/functions/send-push", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, title }),
   }).catch(() => {});
 }

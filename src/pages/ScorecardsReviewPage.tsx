@@ -8,8 +8,8 @@ import {
   deleteCatch,
   deletePenalty,
   overrideCatch,
+  resolveRecordBreakers,
   setReviewedAnglers,
-  updateRecord,
 } from "../data/repository";
 import { scoreCatch, SCORING, isTrash, scoreCalc, floorToQuarter } from "../domain/scoring";
 import { computeStandings } from "../domain/standings";
@@ -17,6 +17,7 @@ import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
 import { RoleBadge } from "../components/RoleBadge";
 import { Icon } from "../components/Icon";
+import { Photo } from "../components/BlobImage";
 import type { CatchEntry } from "../domain/types";
 
 /**
@@ -103,6 +104,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
   }
 
   const reviewed = new Set(settings?.reviewedAnglers ?? []);
+  const canValidate = settings?.state === "ENDED" || settings?.state === "PUBLISHED";
 
   // Penalty deductions per angler.
   const penByUser = new Map<string, number>();
@@ -152,6 +154,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
         " — confirm official measurement";
 
   const toggleValidate = async (uid: string) => {
+    if (!canValidate) return;
     const next = new Set(reviewed);
     if (next.has(uid)) next.delete(uid);
     else next.add(uid);
@@ -179,11 +182,10 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     await broadcast(
       `M.O.C. VERIFIED: ${angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
     );
-    // A verified record breaker rewrites the record book (mirrors the old Catches tab).
-    if (c.isRecordBreaker && angler) {
-      const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());
-      if (rec) await updateRecord(rec.species, { holder: angler.name, year: c.tournamentYear, lengthInches: c.lengthInches });
-    }
+    // Settle every competing record-breaker catch for this species at once —
+    // largest length keeps the record + bonus (earliest catch breaks a tie),
+    // every other catch loses the bonus and is marked verified too.
+    if (c.isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
   };
   const decline = (id: string) => decideCatch(id, "REJECTED", "M.O.C.");
   const reinstate = (id: string) => decideCatch(id, "APPROVED", "M.O.C.");
@@ -208,9 +210,11 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
       </div>
       <h2 className="page-title">Scorecards</h2>
       <p className="page-sub">
-        {anglersToValidate.length === 0
-          ? "No scored catches yet."
-          : `${validatedCount}/${anglersToValidate.length} scorecards validated · updates live`}
+        {!canValidate
+          ? "Tournament is still live — validation opens once it's ended."
+          : anglersToValidate.length === 0
+            ? "No scored catches yet."
+            : `${validatedCount}/${anglersToValidate.length} scorecards validated · updates live`}
       </p>
 
       {/* --- Needs your ruling: Trophy / Record / new-species fish --- */}
@@ -224,31 +228,36 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
           </div>
           {pending.map(({ c, u }) => (
             <div className="ruling-row" key={c.id}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600 }}>
-                  {c.species} · {c.lengthInches}"
-                  <span style={{ color: "var(--sand-faint)", fontWeight: 400 }}>
-                    {" "}— {u?.name ?? "Unknown"}
-                  </span>
+              <div style={{ display: "flex", gap: 10 }}>
+                <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600 }}>
+                    {c.species} · {c.lengthInches}"
+                    <span style={{ color: "var(--sand-faint)", fontWeight: 400 }}>
+                      {" "}— {u?.name ?? "Unknown"}
+                    </span>
+                  </div>
+                  <div className="ruling-reason">{reasonFor(c)}</div>
                 </div>
-                <div className="ruling-reason">{reasonFor(c)}</div>
               </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-                <button className="btn small seafoam" onClick={() => accept(c.id)}>
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <button className="btn small seafoam" style={{ flex: 1 }} onClick={() => accept(c.id)}>
                   <Icon name="check" size={14} /> Accept
                 </button>
-                <button className="btn small danger" onClick={() => decline(c.id)}>
+                <button className="btn small danger" style={{ flex: 1 }} onClick={() => decline(c.id)}>
                   <Icon name="x" size={14} /> Reject
                 </button>
+              </div>
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <input
                   type="number"
                   step="0.25"
                   placeholder="Official inches"
                   value={editLen[c.id] ?? ""}
                   onChange={(e) => setEditLen((d) => ({ ...d, [c.id]: e.target.value }))}
-                  style={{ width: 110, flex: "0 0 auto" }}
+                  style={{ flex: 1, minWidth: 0 }}
                 />
-                <button className="btn small" onClick={() => rescore(c)}>
+                <button className="btn small" style={{ flex: 1 }} onClick={() => rescore(c)}>
                   Rescore
                 </button>
               </div>
@@ -326,6 +335,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                         key={c.id}
                         style={{ flexWrap: "wrap" }}
                       >
+                        <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
                         <div className="sc-species">
                           {c.species}
                           <small>
@@ -414,6 +424,8 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                   <button
                     className={`btn ${reviewed.has(uid) ? "ghost" : "seafoam"}`}
                     style={{ marginTop: 12 }}
+                    disabled={!canValidate}
+                    title={canValidate ? undefined : "Validation opens once the tournament has ended"}
                     onClick={() => toggleValidate(uid)}
                   >
                     <Icon name={reviewed.has(uid) ? "x" : "check"} size={16} />{" "}

@@ -37,6 +37,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<CatchVerification | null>(null);
+  const [awaitingAck, setAwaitingAck] = useState(false);
 
   const isOther = species === OTHER;
   const finalSpecies = isOther ? customSpecies.trim() : species;
@@ -130,10 +131,18 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         );
       }
       setPhase("");
-      onDone();
+      // If the AI left a verdict to read, wait for the angler to acknowledge it
+      // instead of navigating away underneath the message.
+      if (ai) setAwaitingAck(true);
+      else onDone();
     } finally {
       setBusy(false);
     }
+  };
+
+  const acknowledge = () => {
+    setAwaitingAck(false);
+    onDone();
   };
 
   if (!settings) return null;
@@ -339,10 +348,18 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
+      {awaitingAck && (
+        <button className="btn seafoam" onClick={acknowledge} style={{ marginTop: 8 }}>
+          Got it — continue
+        </button>
+      )}
+
       {error && <p className="error-note">{error}</p>}
-      <button className="btn" onClick={submit} disabled={busy} style={{ marginTop: 8 }}>
-        {busy ? phase || "Submitting…" : isOther ? "Send to the M.O.C. for review" : "Submit to the Ledger"}
-      </button>
+      {!awaitingAck && (
+        <button className="btn" onClick={submit} disabled={busy} style={{ marginTop: 8 }}>
+          {busy ? phase || "Submitting…" : isOther ? "Send to the M.O.C. for review" : "Submit to the Ledger"}
+        </button>
+      )}
       {!aiAvailable() && (
         <p style={{ color: "var(--sand-faint)", fontSize: 12.5, marginTop: 8 }}>
           AI verification is off{navigator.onLine ? " (backend not configured)" : " (offline)"}. Catches

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
 import { Badges, badgeSummary } from "../components/Badges";
@@ -13,6 +13,10 @@ export function FindAnglerPage({ onBack }: { onBack: () => void }) {
   const [selected, setSelected] = useState<Accolade | null>(null);
 
   const results = useMemo(() => searchAnglers(query), [query]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selected]);
 
   if (selected) return <AnglerDetail angler={selected} onBack={() => setSelected(null)} />;
 

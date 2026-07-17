@@ -81,7 +81,6 @@ export const SPECIES_2026: SpeciesConfig[] = [
   { name: "Kingfish", category: "GAME_2" },
   { name: "Black Drum", category: "GAME_2" },
   { name: "Sea Trout", category: "GAME_2" },
-  { name: "Weakfish", category: "GAME_2" },
   { name: "Croaker", category: "GAME_2" },
   { name: "Silver Perch", category: "GAME_2" },
   { name: "Spotted Hake", category: "GAME_2" },
