@@ -18,7 +18,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
 
   return (
     <div className="page">
-      <div className="page-kicker">Roster</div>
+      <div className="page-kicker">More Activities</div>
       <h2 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         {user.name} <RoleBadge role={user.roleTag} />
       </h2>

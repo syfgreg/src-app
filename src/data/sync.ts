@@ -194,6 +194,8 @@ export async function pullAll() {
   await reap(db.gloryPics, glory.data as { id: string }[] | null);
   await reap(db.newsletters, newsletters.data as { id: string }[] | null);
   await reap(db.invites, invites.data as { id: string }[] | null);
+  await reap(db.users, profiles.data as { id: string }[] | null);
+  await reap(db.records, records.data ? records.data.map((r: any) => ({ id: r.species })) : null);
 }
 
 // ---------- realtime --------------------------------------------------------

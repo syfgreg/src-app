@@ -101,7 +101,7 @@ export function AdminPage({ onBack, focusAngler, onFocusHandled, initialSection 
           [
             ["tournament", "Tournament"],
             ["scorecards", "Current Scorecards"],
-            ["glory", "Glory Fav"],
+            ["glory", "Glory Shot Voting"],
             ["roster", "Roster"],
             ["scoring", "Scoring & AI"],
             ["notifications", "Notifications"],
@@ -779,7 +779,7 @@ function NotificationsAdmin() {
     if (!msg) return;
     setBusy(true);
     try {
-      await broadcast(msg, "From the M.O.C.");
+      await broadcast(msg, "M.O.C.");
       setText("");
     } finally {
       setBusy(false);
@@ -790,7 +790,7 @@ function NotificationsAdmin() {
     <div className="card">
       <h3>Send a broadcast</h3>
       <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginTop: 0, marginBottom: 12 }}>
-        Sent to every angler, exactly as written, titled "From the M.O.C."
+        Sent to every angler, exactly as written. Shows on iOS as "M.O.C. from Sea Robin."
       </p>
       <label className="field">
         <span>
@@ -1044,7 +1044,7 @@ function GloryFavAdmin() {
   return (
     <>
       <div className="card">
-        <h3>Glory Shot Fav — voting control</h3>
+        <h3>Glory Shot — voting control</h3>
         <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "2px 0 4px" }}>
           <span
             className="tag"
@@ -1096,13 +1096,13 @@ function GloryFavAdmin() {
               >
                 <Icon name="trophy" size={16} /> Publish results
               </button>
-              <button className="btn ghost" onClick={() => reopenGloryVote()}>
+              <button className="btn ghost" onClick={() => reopenGloryVote(year)}>
                 Re-open voting
               </button>
             </>
           )}
           {gloryState === "PUBLISHED" && (
-            <button className="btn ghost" onClick={() => reopenGloryVote()}>
+            <button className="btn ghost" onClick={() => reopenGloryVote(year)}>
               Re-open voting
             </button>
           )}
@@ -1122,7 +1122,7 @@ function GloryFavAdmin() {
       </div>
 
       <div className="card">
-        <h3>Glory Shot Fav — the ballot</h3>
+        <h3>Glory Shot — the ballot</h3>
         <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginTop: 0 }}>
           These are the shots participants vote on for <b>{year}</b>. Upload a new one below, or add an
           existing glory shot to the ballot. Only you see this panel; the vote itself is on the Glory

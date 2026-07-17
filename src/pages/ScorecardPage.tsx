@@ -149,7 +149,7 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
         >
           <Icon name="camera" size={24} />
           <div className="rb-text">
-            <b>Our Tournament has Ended!</b>
+            <b>Glory shot voting is underway!</b>
             <span>Go Vote for your Glory Shot Fav!</span>
           </div>
           <Icon name="next" size={18} />
@@ -264,7 +264,7 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
               <div className="empty-icon">
                 <Icon name="waves" size={30} />
               </div>
-              No fish on your card yet. Get a line in the water.
+              You haven't caught anything yet? You better dunk a line before you shine.
             </div>
           ) : (
             <div>

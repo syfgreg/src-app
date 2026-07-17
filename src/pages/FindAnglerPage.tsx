@@ -73,7 +73,7 @@ export function FindAnglerPage({ onBack }: { onBack: () => void }) {
   );
 }
 
-function AnglerDetail({ angler, onBack }: { angler: Accolade; onBack: () => void }) {
+export function AnglerDetail({ angler, onBack }: { angler: Accolade; onBack: () => void }) {
   const history = [...angler.history].sort((a, b) => a[0] - b[0]);
   const num = (p: (typeof history)[number][1]) => (typeof p === "number" ? p : 0); // DQ/ABD → 0 for the bar
   const maxPts = history.reduce((m, [, p]) => Math.max(m, num(p)), 0) || 1;

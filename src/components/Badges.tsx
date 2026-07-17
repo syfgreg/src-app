@@ -88,11 +88,11 @@ export function badgeSummary(a: Accolade): string {
   const bits: string[] = [];
   if (a.moc) bits.push("M.O.C.");
   if (a.grandRobin) bits.push("Grand Robin");
-  if (a.championships > 0) bits.push(`${a.championships}× Champ`);
-  if (a.recordsHeld > 0) bits.push(`${a.recordsHeld} Records`);
-  if (a.elite3 > 0) bits.push(`${a.elite3} Elite-3`);
+  if (a.championships > 0) bits.push(`${a.championships}x Champion`);
+  if (a.recordsHeld > 0) bits.push(`${a.recordsHeld} record${a.recordsHeld > 1 ? "s" : ""}`);
+  if (a.elite3 > 0) bits.push(`${a.elite3}x Elite-3`);
   const prez = presidencyYears(a).length;
-  if (prez > 0) bits.push(`${prez}× Shiner Pres.`);
+  if (prez > 0) bits.push(`${prez}x Shiner President`);
   const sh = shinerSeasons(a);
   if (sh > 0) bits.push(`${sh} Shiner${sh > 1 ? "s" : ""}`);
   return bits.join(" · ");

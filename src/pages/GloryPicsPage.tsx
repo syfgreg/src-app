@@ -21,6 +21,7 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [lightbox, setLightbox] = useState<{ url?: string; blob?: Blob } | null>(null);
 
   // Glory Shot Fav — the M.O.C.-curated nominees for this tournament, most-voted first.
   const gloryFavState = settings?.gloryFavState ?? "OFF";
@@ -193,7 +194,9 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
         const author = users.find((u) => u.id === p.userId);
         return (
           <article className="catch-card" key={p.id}>
-            <Photo url={p.photoUrl} blob={p.photo} alt="Glory shot" className="photo" />
+            <div role="button" style={{ cursor: "pointer" }} onClick={() => setLightbox({ url: p.photoUrl, blob: p.photo })}>
+              <Photo url={p.photoUrl} blob={p.photo} alt="Glory shot" className="photo" />
+            </div>
             <div className="body">
               <div className="headline">
                 <span className="species" style={{ fontSize: 15 }}>
@@ -224,6 +227,12 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
           </article>
         );
       })}
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <Photo url={lightbox.url} blob={lightbox.blob} alt="Glory shot" />
+        </div>
+      )}
     </div>
   );
 }

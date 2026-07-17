@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { aiAvailable, askRulesAssistant, offlineRulesAnswer } from "../ai/claude";
 import { RULE_SECTIONS } from "../domain/rules";
+import { findAnglerLore } from "../domain/anglerLore";
 
 interface Msg {
   role: "user" | "assistant";
@@ -27,6 +28,14 @@ export function RulesPage() {
     const history = messages;
     setMessages((m) => [...m, { role: "user", content: q }]);
     setInput("");
+
+    const lore = findAnglerLore(q);
+    if (lore) {
+      setMessages((m) => [...m, { role: "assistant", content: lore }]);
+      setTimeout(() => logRef.current?.scrollIntoView({ block: "end" }), 50);
+      return;
+    }
+
     setBusy(true);
     try {
       let answer: string;

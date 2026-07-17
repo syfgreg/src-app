@@ -212,6 +212,91 @@
   margin-top: 20px;
 }
 
+.cc-angler-table {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cc-angler-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 110px 90px 80px 80px 80px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--sand);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.cc-angler-row:last-child { border-bottom: none; }
+@media (hover: hover) and (pointer: fine) {
+  .cc-angler-row:not(.cc-angler-head):hover { background: var(--ink-3); }
+}
+.cc-angler-head {
+  cursor: default;
+  background: var(--ink-3);
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sand-faint);
+}
+.cc-angler-sort {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--flare);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.cc-angler-rank { color: var(--sand-faint); font-variant-numeric: tabular-nums; }
+.cc-angler-name { min-width: 0; }
+.cc-angler-nm { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--sand); }
+.cc-angler-sub { color: var(--sand-faint); font-size: 12px; margin-top: 2px; }
+.cc-angler-pts { color: var(--gold); font-family: var(--font-display); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.cc-catch-table {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cc-catch-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 80px 70px 90px 1fr 100px 1.4fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+.cc-catch-row:last-child { border-bottom: none; }
+.cc-catch-head {
+  background: var(--ink-3);
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sand-faint);
+}
+.cc-catch-flags { display: flex; gap: 6px; flex-wrap: wrap; }
+.cc-catch-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
 .cc-login-shell {
   min-height: 100dvh;
   display: flex;

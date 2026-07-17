@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { deleteNewsletter, publishNewsletter } from "../data/repository";
+import { deleteNewsletter } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
@@ -33,25 +32,6 @@ export function NewsletterPage({ onBack }: { onBack: () => void }) {
   const { user } = useApp();
   const posts = useLiveQuery(() => db.newsletters.orderBy("createdAt").reverse().toArray(), [], []);
   const isMoc = user?.roleTag === "MOC";
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const post = async () => {
-    if (!title.trim() || !body.trim() || !user) return;
-    setBusy(true);
-    try {
-      await publishNewsletter({
-        title: title.trim(),
-        body: body.trim(),
-        author: user.nickname ? `${user.name} "${user.nickname}"` : user.name,
-      });
-      setTitle("");
-      setBody("");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const remove = (id: string) => {
     if (confirm("Delete this newsletter post?")) deleteNewsletter(id);
@@ -63,23 +43,6 @@ export function NewsletterPage({ onBack }: { onBack: () => void }) {
       <div className="page-kicker" style={{ marginTop: 12 }}>From the M.O.C.</div>
       <h2 className="page-title">Newsletter</h2>
       <p className="page-sub">Tournament news, notices, and dispatches from the M.O.C.</p>
-
-      {isMoc && (
-        <div className="card">
-          <h3>Post an update</h3>
-          <label className="field">
-            <span>Headline</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Registration opens Friday" />
-          </label>
-          <label className="field">
-            <span>Message</span>
-            <textarea rows={4} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write your update…" />
-          </label>
-          <button className="btn" disabled={busy || !title.trim() || !body.trim()} onClick={post}>
-            <Icon name="send" size={16} /> {busy ? "Posting…" : "Publish to the roster"}
-          </button>
-        </div>
-      )}
 
       {posts.length === 0 && (
         <div className="empty-state">

@@ -5,7 +5,8 @@ import { useApp } from "../context/AppContext";
 import { AdminPage, type Section as AdminSection } from "../pages/AdminPage";
 import { RecordsPage } from "../pages/RecordsPage";
 import { NewsletterPage } from "../pages/NewsletterPage";
-import { FindAnglerPage } from "../pages/FindAnglerPage";
+import { CommandAnglerHistory } from "./CommandAnglerHistory";
+import { CommandCatchReview } from "./CommandCatchReview";
 import { CommandLoginPage } from "./CommandLoginPage";
 import { needsRuling } from "../pages/ScorecardsReviewPage";
 import { computeStandings } from "../domain/standings";
@@ -47,7 +48,6 @@ export function CommandApp() {
   const adminSectionFor: Partial<Record<Nav, AdminSection>> = {
     tournaments: "tournament",
     roster: "roster",
-    catches: "scorecards",
   };
 
   return (
@@ -87,7 +87,8 @@ export function CommandApp() {
       <main className="cc-content">
         {nav === "dashboard" && <Dashboard onNavigate={setNav} />}
         {nav === "metrics" && <Metrics />}
-        {nav === "history" && <FindAnglerPage onBack={goDashboard} />}
+        {nav === "history" && <CommandAnglerHistory />}
+        {nav === "catches" && <CommandCatchReview />}
         {nav === "records" && <RecordsPage onBack={goDashboard} />}
         {nav === "newsletters" && <NewsletterPage onBack={goDashboard} />}
         {adminSectionFor[nav] && (

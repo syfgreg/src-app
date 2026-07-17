@@ -9,7 +9,6 @@ import type {
   GloryComment,
   GloryPic,
   Invite,
-  Newsletter,
   Penalty,
   RoleTag,
   Settings,
@@ -304,6 +303,7 @@ export async function openGloryVoting() {
 /** Close the vote so no more ballots are accepted (winner not yet revealed). */
 export async function closeGloryVote() {
   await updateSettings({ gloryFavState: "CLOSED" });
+  await broadcast("📸 Glory Shot Fav voting is now CLOSED — winner announced soon!");
 }
 
 /** Reveal the Glory Shot Fav winner to everyone (M.O.C. announces verbally first). */
@@ -313,9 +313,25 @@ export async function publishGloryFav() {
   triggerBackup(); // milestone snapshot
 }
 
-/** Re-open voting (e.g. after an accidental close), back to accepting ballots. */
-export async function reopenGloryVote() {
-  await updateSettings({ gloryFavState: "OPEN" });
+/**
+ * Re-open voting (e.g. after an accidental close). Anyone who had already
+ * locked their vote in gets it cleared and a fresh chance to vote; voters
+ * who hadn't locked keep their current pick untouched.
+ */
+export async function reopenGloryVote(year: number) {
+  const settings = await db.settings.get(1);
+  const locked = new Set(settings?.gloryFavLockedVoters ?? []);
+  if (locked.size > 0) {
+    const nominees = (await db.gloryPics.toArray()).filter((g) => g.nominatedYear === year);
+    for (const g of nominees) {
+      const prev = g.votes ?? [];
+      const next = prev.filter((v) => !locked.has(v));
+      if (next.length === prev.length) continue;
+      await db.gloryPics.update(g.id, { votes: next });
+      await remoteWrite({ table: "glory_pics", op: "update", key: g.id, payload: { votes: next }, at: now() });
+    }
+  }
+  await updateSettings({ gloryFavState: "OPEN", gloryFavLockedVoters: [] });
 }
 
 export interface BackupFile {
@@ -446,24 +462,6 @@ export async function publishResults() {
 }
 
 // ---------- newsletter ------------------------------------------------------
-export async function publishNewsletter(entry: { title: string; body: string; author: string }): Promise<void> {
-  const n: Newsletter = { id: uuid(), createdAt: now(), ...entry };
-  await db.newsletters.put(n);
-  await remoteWrite({
-    table: "newsletters",
-    op: "upsert",
-    key: n.id,
-    payload: {
-      id: n.id,
-      title: n.title,
-      body: n.body,
-      author: n.author,
-      created_at: new Date(n.createdAt).toISOString(),
-    },
-    at: n.createdAt,
-  });
-}
-
 export async function deleteNewsletter(id: string) {
   const n = await db.newsletters.get(id);
   if (n?.protected) return; // RLS blocks this remotely too — don't even optimistically remove it locally
