@@ -17,6 +17,7 @@ import { AdminPage } from "./pages/AdminPage";
 import { NewsletterPage } from "./pages/NewsletterPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { FindAnglerPage } from "./pages/FindAnglerPage";
+import { GloryFavArchivePage } from "./pages/GloryFavArchivePage";
 import { Icon } from "./components/Icon";
 
 export type Screen =
@@ -28,7 +29,8 @@ export type Screen =
   | "newsletter"
   | "results"
   | "scorecards"
-  | "find-angler";
+  | "find-angler"
+  | "glory-archive";
 
 export default function App() {
   const { user, ready, recovery } = useApp();
@@ -95,6 +97,7 @@ export default function App() {
       {screen === "newsletter" && <NewsletterPage onBack={() => setScreen("more")} />}
       {screen === "results" && <ResultsPage onBack={() => setScreen("more")} />}
       {screen === "find-angler" && <FindAnglerPage onBack={() => setScreen("more")} />}
+      {screen === "glory-archive" && <GloryFavArchivePage onBack={() => setScreen("more")} />}
       <TabBar active={tab} onChange={(t) => setScreen(t)} />
     </div>
   );
