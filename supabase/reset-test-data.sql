@@ -1,6 +1,8 @@
 -- ============================================================================
--- RESET TEST DATA — run this once testing wraps up, to start the real
--- tournament season with a clean board.
+-- RESET TEST DATA — wipes everything created before the real season starts.
+-- Everything from now until MOCK_CUTOFF (Nov 1, 2026) — including any mock
+-- tournament, published or not — is considered test data. Update the date
+-- below if the real season's start date ever changes.
 --
 -- HOW TO RUN:
 --   supabase db query --linked --file supabase/reset-test-data.sql
@@ -10,41 +12,18 @@
 -- below before running. Nothing here touches auth/login in any way.
 -- ============================================================================
 
--- ---------- WIPED: all test tournament activity -----------------------------
-delete from public.catches;
-delete from public.penalties;
-delete from public.glory_pics;
-delete from public.notifications;
--- Only the test era (2026+) — the 1998-2025 historical tournament archive is
--- permanent and must never be wiped by this script.
-delete from public.tournaments where year >= 2026;
-
--- ---------- RESET: records back to the official 2026 rulebook baseline ------
--- (undoes any record broken by a test catch). Source: src/domain/records.ts /
--- migration-2026-records.sql, Section 5-H — NOT the older schema.sql seed,
--- which was never updated to match and is stale.
-delete from public.records;
-insert into public.records (species, holder, year, length_inches) values
-  ('Sea Robin',    'N/A — the Coveted remains uncaught', null, 0),
-  ('Striped Bass', 'Peter Dzien',   2008, 26),
-  ('Flounder',     'Jeff Kern',     2020, 20),
-  ('Red Drum',     'Dave Gonzalez', 2013, 25.5),
-  ('Black Drum',   'Sean Sullivan', 2018, 11),
-  ('Sheepshead',   'Mike Cooper',   2007, 11),
-  ('Bluefish',     'Eric Keresty',  2004, 17.5),
-  ('Sea Trout',    'Mike Cooper',   2003, 16),
-  ('Kingfish',     'Jerry Egan',    2022, 14.25),
-  ('Croaker',      'Will Koth',     2020, 7),
-  ('Spot',         'Dave Gonzalez', 2024, 10),
-  ('Spotted Hake', 'Mike Cooper',   2008, 12),
-  ('Silver Perch', 'Phill Hall',    2020, 8),
-  ('Puffer Fish',  'Fred Bubeck',   2019, 10),
-  ('Eel',          'Sean Sullivan', 2007, 26),
-  ('Cusk Eel',     'Dave Gonzalez', 2022, 8.5),
-  ('Skate',        'Greg Keresty',  2012, 29),
-  ('Shark',        'Dave Gonzalez', 2006, 39),
-  ('Ray',          'Greg Hudson (Butterfly)', 2023, 19.5),
-  ('Stargazer',    'Pete Dzien',    2013, 21.5);
+-- ---------- WIPED: everything created before the real season ----------------
+-- MOCK_CUTOFF: anything created before this date is mock/test data, full
+-- stop — regardless of tournament year or whether it was ever published.
+delete from public.catches      where created_at < '2026-11-01';
+delete from public.penalties    where created_at < '2026-11-01';
+delete from public.glory_pics   where created_at < '2026-11-01';
+delete from public.notifications; -- always ephemeral, no cutoff needed
+-- The 1998-2025 archive is protected by year (its rows carry period-accurate
+-- created_at values, so a date cutoff alone can't tell it apart from test
+-- data) — test-era tournament rows are wiped if created before the cutoff,
+-- published or not.
+delete from public.tournaments where year >= 2026 and created_at < '2026-11-01';
 
 -- ---------- RESET: settings back to a clean, unstarted tournament cycle -----
 update public.settings set
@@ -57,6 +36,10 @@ update public.settings set
 where id = 1;
 
 -- ---------- NOT TOUCHED (intentionally) --------------------------------------
+--   public.records                                 — the record book is a
+--     permanent, standing baseline, visible year over year. It only changes
+--     the way it's meant to: an official tournament participant breaking it
+--     for real (via the app's own record-breaker flow), never via a reset.
 --   public.profiles, public.invites, auth.users  — real registered anglers keep
 --     their accounts; nobody has to re-register.
 --   public.newsletters                            — includes the protected

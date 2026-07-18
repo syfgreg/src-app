@@ -213,7 +213,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
         {!canValidate
           ? "Tournament is still live — validation opens once it's ended."
           : anglersToValidate.length === 0
-            ? "No scored catches yet."
+            ? "The sea made shiners of everyone today!"
             : `${validatedCount}/${anglersToValidate.length} scorecards validated · updates live`}
       </p>
 
@@ -271,7 +271,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
           <div className="empty-icon">
             <Icon name="scorecard" size={30} />
           </div>
-          No catches on the board yet.
+          {canValidate ? "The sea made shiners of everyone today!" : "No catches on the board yet."}
         </div>
       )}
 

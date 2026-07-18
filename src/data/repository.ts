@@ -300,9 +300,47 @@ export async function openGloryVoting() {
   await broadcast("📸 Voting is OPEN — go pick your Glory Shot Fav!");
 }
 
+/**
+ * Permanently archive this year's Glory Shot Fav ballot — every nominee's
+ * photo, submitter, and final vote count, plus which one won (ties all win).
+ * Called the moment voting closes, so the result survives forever regardless
+ * of what later happens to the working glory_pics board. Safe to call more
+ * than once for the same year (e.g. reopen-then-reclose) — replaces rather
+ * than duplicates that year's archive.
+ */
+// Matches the cutoff in supabase/reset-test-data.sql — anything before the
+// real season start is mock/test data and never becomes permanent history.
+const MOCK_CUTOFF = new Date("2026-11-01T00:00:00Z").getTime();
+
+async function archiveGloryFavBallot(year: number): Promise<void> {
+  if (!cloudEnabled || !supabase) return;
+  if (Date.now() < MOCK_CUTOFF) return; // mock vote — never archived
+  try {
+    const nominees = (await db.gloryPics.toArray()).filter((g) => g.nominatedYear === year);
+    if (nominees.length === 0) return;
+    const users = await db.users.toArray();
+    const topVotes = Math.max(0, ...nominees.map((g) => g.votes?.length ?? 0));
+    const rows = nominees.map((g) => ({
+      year,
+      source_id: g.id,
+      photo_url: g.photoUrl ?? "",
+      submitter: users.find((u) => u.id === g.userId)?.name ?? "Unknown angler",
+      description: g.description || null,
+      votes: g.votes?.length ?? 0,
+      is_winner: (g.votes?.length ?? 0) > 0 && (g.votes?.length ?? 0) === topVotes,
+    }));
+    await supabase.from("glory_fav_history").delete().eq("year", year);
+    await supabase.from("glory_fav_history").insert(rows);
+  } catch {
+    // Archiving is best-effort — never let it block the actual vote-close/publish flow.
+  }
+}
+
 /** Close the vote so no more ballots are accepted (winner not yet revealed). */
 export async function closeGloryVote() {
+  const settings = await db.settings.get(1);
   await updateSettings({ gloryFavState: "CLOSED" });
+  await archiveGloryFavBallot(settings?.tournamentYear ?? new Date().getFullYear());
   await broadcast("📸 Glory Shot Fav voting is now CLOSED — winner announced soon!");
 }
 
@@ -443,6 +481,12 @@ export async function resolveRecordBreakers(species: string, tournamentYear: num
 export async function publishResults() {
   const settings = await db.settings.get(1);
   const year = settings?.tournamentYear ?? new Date().getFullYear();
+
+  // Publishing tournament results closes out the season for good — if Glory
+  // Fav voting is still open at this point, close it too rather than leaving
+  // it hanging (this also permanently archives the ballot).
+  if (settings?.gloryFavState === "OPEN") await closeGloryVote();
+
   const approved = await db.catches
     .where("tournamentYear")
     .equals(year)

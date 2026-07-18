@@ -197,6 +197,25 @@ create table if not exists public.glory_pics (
   created_at  timestamptz not null default now()
 );
 
+-- ---------- glory fav history (permanent ballot archive) ---------------------
+-- Written once per year, the moment that year's Glory Shot Fav voting closes
+-- (see archiveGloryFavBallot in src/data/repository.ts). Every nominee that
+-- made the ballot is preserved here forever — photo, submitter, final vote
+-- count, and whether it won — independent of whatever later happens to the
+-- working public.glory_pics board. Never wiped by any reset script.
+create table if not exists public.glory_fav_history (
+  id          uuid primary key default gen_random_uuid(),
+  year        int not null,
+  source_id   uuid,                             -- the original glory_pics.id (not FK'd — that row may later be deleted)
+  photo_url   text not null,
+  submitter   text not null,
+  description text,
+  votes       int not null default 0,
+  is_winner   boolean not null default false,
+  archived_at timestamptz not null default now()
+);
+create index if not exists glory_fav_history_year_idx on public.glory_fav_history (year);
+
 -- ---------- notifications (shared broadcast feed) ----------------------------
 -- read/unread state is tracked per-device on the client, not here.
 create table if not exists public.notifications (
@@ -228,6 +247,7 @@ alter table public.settings      enable row level security;
 alter table public.records       enable row level security;
 alter table public.catches       enable row level security;
 alter table public.glory_pics    enable row level security;
+alter table public.glory_fav_history enable row level security;
 alter table public.notifications enable row level security;
 alter table public.newsletters   enable row level security;
 alter table public.tournaments   enable row level security;
@@ -280,6 +300,13 @@ create policy glory_insert on public.glory_pics for insert to authenticated
   with check (user_id = auth.uid());
 create policy glory_update on public.glory_pics for update to authenticated
   using (true) with check (true);
+
+-- glory fav history: everyone reads the permanent archive; only M.O.C. writes it
+drop policy if exists glory_history_read  on public.glory_fav_history;
+drop policy if exists glory_history_write on public.glory_fav_history;
+create policy glory_history_read  on public.glory_fav_history for select to authenticated using (true);
+create policy glory_history_write on public.glory_fav_history for all to authenticated
+  using (public.is_moc()) with check (public.is_moc());
 
 -- notifications: everyone reads; any authed may broadcast (catch submit/approve)
 drop policy if exists notif_read   on public.notifications;
