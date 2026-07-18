@@ -7,6 +7,7 @@ import { RecordsPage } from "../pages/RecordsPage";
 import { NewsletterPage } from "../pages/NewsletterPage";
 import { CommandAnglerHistory } from "./CommandAnglerHistory";
 import { CommandCatchReview } from "./CommandCatchReview";
+import { CommandTournaments } from "./CommandTournaments";
 import { CommandLoginPage } from "./CommandLoginPage";
 import { needsRuling } from "../pages/ScorecardsReviewPage";
 import { computeStandings } from "../domain/standings";
@@ -46,7 +47,6 @@ export function CommandApp() {
 
   const goDashboard = () => setNav("dashboard");
   const adminSectionFor: Partial<Record<Nav, AdminSection>> = {
-    tournaments: "tournament",
     roster: "roster",
   };
 
@@ -89,6 +89,7 @@ export function CommandApp() {
         {nav === "metrics" && <Metrics />}
         {nav === "history" && <CommandAnglerHistory />}
         {nav === "catches" && <CommandCatchReview />}
+        {nav === "tournaments" && <CommandTournaments />}
         {nav === "records" && <RecordsPage onBack={goDashboard} />}
         {nav === "newsletters" && <NewsletterPage onBack={goDashboard} />}
         {adminSectionFor[nav] && (

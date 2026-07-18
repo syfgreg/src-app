@@ -145,6 +145,36 @@ export function computeShinerPresidents(field: Accolade[] = HALL_OF_FAME): Presi
 /** Memoized ledger — the career file is static, so compute once. */
 export const SHINER_PRESIDENTS: Presidency[] = computeShinerPresidents();
 
+export interface YearChampion {
+  year: number;
+  holderId: string;
+  name: string;
+  points: number;
+}
+
+/**
+ * The top scorer for each year in the career file — used as the historical
+ * fallback for years before the app tracked individual catches (there's no
+ * catch-level data for these seasons, only each angler's yearly total).
+ * Excludes DQ/ABD/zero (Shiner) results, since those can't be a champion.
+ */
+export function computeYearChampions(field: Accolade[] = HALL_OF_FAME): YearChampion[] {
+  const byYear = new Map<number, { a: Accolade; pts: number }>();
+  for (const a of field) {
+    for (const [year, result] of a.history) {
+      if (typeof result !== "number" || result <= 0) continue;
+      const cur = byYear.get(year);
+      if (!cur || result > cur.pts) byYear.set(year, { a, pts: result });
+    }
+  }
+  return [...byYear.entries()]
+    .map(([year, { a, pts }]) => ({ year, holderId: a.id, name: a.name, points: pts }))
+    .sort((x, y) => x.year - y.year);
+}
+
+/** Memoized — the career file is static, so compute once. */
+export const YEAR_CHAMPIONS: YearChampion[] = computeYearChampions();
+
 /** Years this angler held the Shiner Club Presidency (most recent first). */
 export function presidencyYears(a: Accolade): number[] {
   return SHINER_PRESIDENTS.filter((p) => p.holderId === a.id)

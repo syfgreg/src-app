@@ -53,9 +53,11 @@ create table if not exists public.tournaments (
   year            int not null,
   participant_ids jsonb not null default '[]'::jsonb,
   created_at      timestamptz not null default now(),
-  published_at    timestamptz
+  published_at    timestamptz,
+  scheduled_for   timestamptz
 );
 create index if not exists tournaments_year_idx on public.tournaments (year);
+alter table public.tournaments add column if not exists scheduled_for timestamptz;
 
 -- create a profile automatically whenever an auth user signs up.
 -- If the M.O.C. left a pending invite for this email, inherit its role (and

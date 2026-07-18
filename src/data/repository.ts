@@ -564,6 +564,7 @@ export async function upsertTournament(t: Tournament) {
         participant_ids: t.participantIds,
         created_at: new Date(t.createdAt).toISOString(),
         published_at: t.publishedAt ? new Date(t.publishedAt).toISOString() : null,
+        scheduled_for: t.scheduledFor ? new Date(t.scheduledFor).toISOString() : null,
       },
       at: t.createdAt,
     },
@@ -634,4 +635,77 @@ export async function startNewTournament(opts: {
     gloryFavLockedVoters: [],
   });
   await broadcast(`A new tournament is on the board: ${opts.name.trim() || `Sea Robin Classic ${opts.year}`}.`);
+}
+
+/**
+ * Register a future tournament without touching the live board at all —
+ * saved to the registry for the M.O.C. to activate later, whenever the day
+ * actually comes (see activateTournament).
+ */
+export async function scheduleTournament(opts: { name: string; year: number; startAt: number }): Promise<void> {
+  const clash = await db.catches.where("tournamentYear").equals(opts.year).count();
+  if (clash > 0) {
+    throw new Error(
+      `Year ${opts.year} already has ${clash} catch${clash === 1 ? "" : "es"}. Pick an unused year so the new tournament starts clean.`,
+    );
+  }
+  const already = (await db.tournaments.toArray()).find((t) => t.year === opts.year);
+  if (already) throw new Error(`${opts.year} is already on the books as "${already.name}".`);
+
+  await upsertTournament({
+    id: uuid(),
+    name: opts.name.trim() || `Sea Robin Classic ${opts.year}`,
+    year: opts.year,
+    participantIds: [],
+    createdAt: now(),
+    scheduledFor: opts.startAt,
+  });
+}
+
+/**
+ * Activate a previously-scheduled tournament: archives whatever's currently
+ * active and makes this one the live board (mirrors startNewTournament, but
+ * reuses the existing scheduled row instead of creating a new one). The
+ * roster is filled in now, at activation time, not back when it was scheduled.
+ */
+export async function activateTournament(id: string): Promise<void> {
+  const t = await db.tournaments.get(id);
+  if (!t) throw new Error("Scheduled tournament not found.");
+
+  const settings = await db.settings.get(1);
+  const currentYear = settings?.tournamentYear ?? new Date().getFullYear();
+
+  const clash = await db.catches.where("tournamentYear").equals(t.year).count();
+  if (clash > 0) {
+    throw new Error(
+      `Year ${t.year} already has ${clash} catch${clash === 1 ? "" : "es"}. Can't activate — pick a clean year instead.`,
+    );
+  }
+
+  // Archive the outgoing tournament if it isn't in the registry yet.
+  const existing = (await db.tournaments.toArray()).find((x) => x.year === currentYear);
+  if (!existing) {
+    await upsertTournament({
+      id: uuid(),
+      name: `Sea Robin Classic ${currentYear}`,
+      year: currentYear,
+      participantIds: [],
+      createdAt: now(),
+      publishedAt: settings?.state === "PUBLISHED" ? settings.publishedAt ?? now() : undefined,
+    });
+  }
+
+  const users = await db.users.toArray();
+  const participantIds = users.filter((u) => u.roleTag !== "INACTIVE").map((u) => u.id);
+  const { scheduledFor: _drop, ...rest } = t;
+  await upsertTournament({ ...rest, participantIds });
+
+  await updateSettings({
+    tournamentYear: t.year,
+    state: "SETUP",
+    reviewedAnglers: [],
+    gloryFavState: "OFF",
+    gloryFavLockedVoters: [],
+  });
+  await broadcast(`A new tournament is on the board: ${t.name}.`);
 }

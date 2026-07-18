@@ -120,6 +120,7 @@ const toTournament = (r: any): Tournament => ({
   participantIds: Array.isArray(r.participant_ids) ? r.participant_ids : [],
   createdAt: ms(r.created_at),
   publishedAt: r.published_at ? ms(r.published_at) : undefined,
+  scheduledFor: r.scheduled_for ? ms(r.scheduled_for) : undefined,
 });
 
 const toInvite = (r: any): Invite => ({

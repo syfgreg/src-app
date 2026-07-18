@@ -151,6 +151,8 @@ export interface Tournament {
   createdAt: number;
   /** ms epoch when this tournament's results were published/finalized. */
   publishedAt?: number;
+  /** ms epoch this tournament is scheduled to start; unset once it's activated. */
+  scheduledFor?: number;
 }
 
 /**

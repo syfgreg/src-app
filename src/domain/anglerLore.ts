@@ -16,121 +16,121 @@ export const ANGLER_LORE: AnglerLore[] = [
     name: "Fred Bubeck",
     matchKeys: ["Fred Bubeck", "Freddy B", "Bubeck"],
     blurb:
-      'A long-standing SRC participant and lifelong childhood friend of the MOC (they played sports together from elementary through high school), who openly admits he\'s "not a fisherman." Won the tournament\'s very first Calcutta in 2011 with a single 12" spotted hake in a "drunken frenzy of profanity laced excitement." Holds the record for the lowest scorecard total in SRC history — a single 7" bluefish in 1999 worth 35 points — and is the namesake of the mini keg "Wilson." Broke the Puffer Fish record (10") in 2018, and by 2024 had climbed to 10th all-time on an "Up-A-Lot" 16-fish haul.',
+      'Fred joined the SRC roster in 1999 and, by his own admission, is not a fisherman — the record book agrees, cheerfully. That first season he posted a single 7" bluefish worth 35 points, still the worst scorecard in tournament history, and nobody\'s come close to beating it since. Stats were never really his department, though — his department is the mini keg "Wilson," named in his honor after one legendary fireside collapse, and a friendship with the MOC that predates most people\'s mortgages. He did somehow back into the tournament\'s very first Calcutta win in 2011 (one 12" spotted hake, celebrated per the newsletter in "a drunken frenzy of profanity laced excitement"), and broke the Puffer Fish record in 2018 — presumably while looking for the cooler.',
   },
   {
     name: "Pete Dzien",
     matchKeys: ["Pete Dzien", "Dzien"],
     blurb:
-      "Became the second-ever two-time SRC Champion with his 2010 win, charging the beach at 5am yelling he was going to win, and landing two flounder plus a 20.5\" shark. Set a new record 21.5\" Stargazer in his 2nd-place 2013 finish.",
+      'Pete Dzien has been part of the SRC since 1998, but he\'s best remembered for one specific sunrise in 2010, when he charged the beach at 5am hollering that he was going to win the whole thing — and then actually did, becoming only the second angler ever to win the Championship twice, on the strength of two flounder and a 20.5" shark. He backed it up in 2013 with a new record 21.5" Stargazer, because apparently yelling at the ocean works.',
   },
   {
     name: "Jerry Egan",
     matchKeys: ["Jerry Egan", "GAE", "Sailor Jerry", "Egan"],
     blurb:
-      'A collegiate friend of the MOC\'s from the early 1990s who first fished in 1999, took a sabbatical 2010–2013, then returned to become the tournament\'s defining dynasty: won his first Championship in 2021 after 19 years of trying, then went back-to-back-to-back-to-back for an unprecedented four-peat (2021–2024), shattering the long-standing "Champion\'s Curse." His 2024 season (18,485 points, including a single 19" flounder worth 5,700 points alone) is the highest point total in SRC history. Also a repeat winner of Derek Hall\'s Calcutta side-tournament, earning the nickname "Second Gentleman."',
+      'Jerry Egan first showed up in 1999 as the SRC\'s resident tragic hero — always in the mix, never quite closing it out, the kind of guy the newsletter kept rooting for. Then 2021 arrived and broke something in the universe: his first Championship, at last. He responded by not stopping — four Championships in a row, an "Egan Era" that finally buried the tournament\'s long-standing superstition, the Champion\'s Curse, under a pile of his own trophies. His 2024 season — 18,485 points, propped up by a single 19" flounder worth 5,700 points on its own — is the single highest point total anyone has ever posted. He\'s also the reigning, repeat "Second Gentleman" of Derek Hall\'s gloriously disorganized Calcutta side-tournament, because apparently he can\'t help but win things.',
   },
   {
     name: "John Friscia",
     matchKeys: ["John Friscia", "Friscia"],
     blurb:
-      'President of the 2010 "Shiners Club" (the mock title for anglers who catch nothing), he then went nine full years without catching a fish (2005–2014) before breaking the streak to a celebratory "HERE\'S JOHNNY!!" newsletter writeup. He was honored for hand-crafting a cornhole set that became the tournament\'s official sporting event in 2018, and was one of the anglers involved in the disputed 2001 championship measurement that led to the Official SRC Measuring Device Rule.',
+      'John Friscia has been fishing the SRC since 1998, though for a long stretch that verb was doing a lot of work — he went years without landing a single fish, long enough to be crowned President of the inaugural Shiners Club in 2010, the tournament\'s finest zero-fish anglers. Then he finally hooked something, and the newsletter greeted the news with an actual "HERE\'S JOHNNY!!" headline. He\'s also been honored for hand-crafting the cornhole set that became the tournament\'s official sporting event, and was one of the anglers at the center of a disputed 2001 measurement controversy that\'s the entire reason the SRC now has an Official Measuring Device Rule.',
   },
   {
     name: "Steve Getsie",
     matchKeys: ["Steve Getsie", "Getsie"],
     blurb:
-      'Joined as a Greenhorn in 2011 (an avid outdoorsman/river fisherman). Landed a new record 13" kingfish in 2015, then won his first Championship in 2016.',
+      'Steve Getsie joined the SRC in 2011 as a self-described river-fishing outdoorsman, which either helped or didn\'t, because it still took him a few years to find his footing. He set a new record 13" kingfish in 2015, then cashed it all in for his first Championship the very next year.',
   },
   {
     name: "Charles Goins",
     matchKeys: ["Charles Goins", "Goins"],
     blurb:
-      'Won his first Championship in 1999, then a second one in 2015 — 15 years apart — landing a new record 7" pufferfish along the way; the MOC called it "even sweeter" than his first. Won the 2022 Glory Shot with a "monstrous" Largemouth Bass allegedly caught on a pink hula popper (treated with good-natured skepticism by the newsletter).',
+      'Charles Goins won his first SRC Championship in 1999 and then made everyone wait a very long time for a second one, finally getting it in 2015 with a new record 7" pufferfish — a win the MOC called "even sweeter" than the first, mostly because of how long the wait was. He also won the 2022 Glory Shot with a "monstrous" Largemouth Bass allegedly caught on a pink hula popper, a claim the newsletter treated with the skepticism it probably deserved.',
   },
   {
     name: "Dave Gonzalez",
     matchKeys: ["Dave Gonzalez", "Gonzo", "Gonzalez"],
     blurb:
-      'One of the tournament\'s two titans. Champion in 2013 (rod holder snapped in the final hour, then landed a record 25.5" Red Drum) and 2017 (first-ever "Full Monty" bonus winner, prompting the MOC\'s "there\'s a new sheriff in town" line). A serial record-breaker in later years (Cusk Eel in 2022, Spot in multiple years), and in 2024 he passed Will Koth to become the SRC\'s all-time career points leader.',
+      'Dave Gonzalez, better known simply as Gonzo, joined the SRC in 2004 and has been quietly assembling a dynasty ever since. In 2013 his rod holder literally snapped in the tournament\'s final hour, and he responded by landing a record 25.5" Red Drum anyway. In 2017 he became the first angler ever to pull off the "Full Monty" bonus, prompting the MOC to declare "there\'s a new sheriff in town." He\'s also developed a habit of finding species nobody else bothers with — a Cusk Eel in 2022 among them — and in 2024 he finally passed Will Koth to become the SRC\'s all-time career points leader.',
   },
   {
     name: "Derek Hall",
     matchKeys: ["Derek Hall"],
     blurb:
-      'Won the very first Glory Shot competition (2010) and the 2013 edition too (a 32" Tiger Musky). The original, perpetually-intoxicated founder of the Thursday-night Calcutta side-tournament (later rebranded "The Gentleman\'s Tournament"), and once became the first Participant ever marked as a Shiner while still seated in his camping chair, "relying heavily on chocolate chip cookies and chilled scotch."',
+      'Derek Hall has been part of the SRC scene since 2000, and while his own scorecard has never been the story, everything around it usually is. He founded the tournament\'s chaotic Thursday-night Calcutta side-bet, presiding over it in a state the newsletter has charitably described as "perpetually intoxicated." He once became the first Participant ever formally marked as a Shiner while still seated in his camping chair, unable to move or speak, "relying heavily on chocolate chip cookies and chilled scotch." He did manage two Glory Shot wins along the way — a largemouth bass in 2010 and a 32" Tiger Musky in 2013 — so the fish do occasionally show up too.',
   },
   {
     name: "Phillip Hall",
     matchKeys: ["Phillip Hall", "Phill Hall"],
     blurb:
-      'He joined in 2009. His best-ever gamefish was a modest 9" Striped Bass in 2010. He\'s fished only about half the tournaments since, a Shiner roughly 50% of the time, though he did set the Silver Perch record in 2020, and once finished 3rd in an early response-card contest with a "Nancies in the sand" entry.',
+      'Phillip "Phill" Hall joined the SRC in 2009 and has kept his ambitions refreshingly modest ever since — his best-ever gamefish, to date, is a 9" Striped Bass landed in 2010. He did eventually pick up the Silver Perch record in 2020, and once finished third in an early response-card contest with an entry titled, memorably, "Nancies in the sand."',
   },
   {
     name: "Patrick Hough",
     matchKeys: ["Patrick Hough", "Nephew Hough", "Hough"],
     blurb:
-      'The MOC\'s actual nephew, joined as a Greenhorn in 2019 alongside Mason Keresty. His debut season was a bust (showed up with freshwater crappie spinnerbaits and earned a Shiner mark), but he\'s been a steady "gamefish magnet" ever since.',
+      'Patrick "Nephew" Hough is, as the nickname suggests, the MOC\'s actual nephew, who joined the SRC in 2019 and immediately proved that family connections don\'t help you catch fish — he showed up with freshwater crappie spinnerbaits, entirely the wrong gear for the ocean, and earned himself a Shiner mark on his very first scorecard. He\'s been a steady "gamefish magnet" ever since, presumably after someone finally showed him the tackle shop.',
   },
   {
     name: "Greg Hudson",
     matchKeys: ["Greg Hudson", "Hudson"],
     blurb:
-      'Held the mock title of Secretary in the 2010 "Shiners Club" for anglers who caught nothing, and was the first to flag that response cards were missing from tournament invites, prompting a whole response-card contest the following year. After 16 consecutive years of competition (2001–2016), finally notched his first-ever Elite 3 finish with a 2nd-place showing in 2016. A 2017 spotlight described him as reportedly the only Participant who doesn\'t drink beer (barring "Shotgun" challenges) and dislikes nearly all food except Chicken and Dumplings — also a talented singer/guitarist known to the MOC for 35 years. Landed a new record Butterfly Ray (19.5") in 2023.',
+      'Greg Hudson has been fishing the SRC since 2001, and for a long stretch his most notable accomplishment was serving as Secretary of the 2010 Shiners Club — the mock leadership slate for anglers who\'d caught nothing. He was also the one who first noticed response cards were missing from tournament invites, single-handedly launching an annual response-card contest. He finally broke through with his first Elite-3 finish in 2016, and picked up a record Butterfly Ray in 2023. A 2017 spotlight also noted he\'s reportedly the only Participant who doesn\'t drink beer and dislikes nearly every food except Chicken and Dumplings — which, if nothing else, keeps grocery runs simple.',
   },
   {
     name: "Eric Keresty",
     matchKeys: ["Eric Keresty"],
     blurb:
-      'Writes "Deep Thoughts from the M.O.C." in every single newsletter and has run the tournament throughout the archive. Also fishes himself: 4th place in 2010, and Glory Shot wins in 2018 (rainbow trout on the fly) and 2023 (brown trout in Utah, a "bucket list trip").',
+      'Eric Keresty has run the SRC since 1998 and writes "Deep Thoughts from the M.O.C." in every single newsletter, which makes him either the tournament\'s most reliable narrator or its only unreliable one, depending who you ask. He does still fish himself when the robes come off — a 4th-place finish in 2010, plus Glory Shot wins in 2018 (a rainbow trout on the fly) and 2023 (a brown trout in Utah, on what he called a bucket-list trip).',
   },
   {
     name: "Greg Keresty",
     matchKeys: ["Greg Keresty"],
     blurb:
-      'Informally dubbed "Sea Robin Royalty" for helping build the tournament\'s modern framework and pushing its move to Assateague. His sole Championship came in 2004. In 2012 he landed a 29" skate that remains the all-time SRC record — though a separate near-record skate he caught in 2013 went unrecognized because he released it before an official measurement. Won the very first response-card contest by mailing in a miniature fishing rod with a real hook attached.',
+      'Greg Keresty has been part of the SRC since the very beginning in 1998, and is informally known as "Sea Robin Royalty" for helping build the tournament\'s modern framework and pushing its eventual move to Assateague. His sole Championship came in 2004, and in 2012 he landed a 29" skate that remains the all-time SRC record to this day — though a second near-record skate in 2013 doesn\'t count, because he released it before anyone could officially measure it, a mistake he presumably does not need reminding of. He also won the very first response-card contest by mailing in a miniature fishing rod with a real, working hook attached, which is either the most committed or the most dangerous RSVP in tournament history.',
   },
   {
     name: "Jeff Kern",
     matchKeys: ["Jeff Kern", "Kern"],
     blurb:
-      'First joined for the infamous fishless, gale-force-wind washout of 2011 — the MOC later wrote he was "glad he decided to return the following year." Won his first Championship in 2020 with a new record 20" Flounder, beating both Dave Gonzalez and 5-time-champ Will Koth. Described in a 2025 spotlight as showing up to a pre-SRC trout tournament "barely clothed in an old fishing vest with a half-chewed cigar clenched between his teeth."',
+      'Jeff Kern\'s SRC career got off to the worst possible start in 2011, when he joined right in time for the infamous, gale-force-wind, completely fishless washout of a tournament — the MOC later admitted he was "glad he decided to return the following year." Return he did, and in 2020 he claimed his first Championship with a record 20" Flounder, beating both Dave Gonzalez and five-time-champ Will Koth in the process. A 2025 spotlight also recalled first meeting him at a pre-SRC trout tournament "barely clothed in an old fishing vest with a half-chewed cigar clenched between his teeth," which honestly explains a lot.',
   },
   {
     name: "Will Koth",
     matchKeys: ["Will Koth", "Koth"],
     blurb:
-      'The tournament\'s most decorated Champion for most of the archive: five titles (2000, 2005, 2012, 2014, 2019), including a 3rd win despite Hurricane Sandy forcing a last-minute relocation. Was the all-time points leader for over a decade (once joking he wanted his name "on each face of the trophy") until Dave Gonzalez finally passed him in 2024. Caught the tournament\'s very first Calcutta "winning" shark in 2011, only to be beaten in the final minutes.',
+      'Will Koth joined the SRC in 2000 and, it turned out, never really left the podium — five Championships in all, including a title won in 2012 despite Hurricane Sandy forcing a last-minute relocation of the entire tournament. He was the SRC\'s all-time points leader for over a decade, once joking he wanted his name "on each face of the trophy" (there are four faces; he got most of them). He also caught what he thought was the winning shark in the tournament\'s very first Calcutta back in 2011, only to be scooped in the closing minutes — proof that even legends get got sometimes.',
   },
   {
     name: "George Mummert",
     matchKeys: ["George Mummert", "Mummert"],
     blurb:
-      "Hand-crafted a bronze remodel of the SRC Trophy itself in 2010, complete with internal storage for the original crystal trophy. Won Glory Shot competitions in 2012 (Tiger Musky) and 2014 (bluefish), and finished 2nd overall in the 2014 tournament.",
+      'George Mummert has been fishing the SRC since 1999, and somewhere along the way decided competing wasn\'t enough — in 2010 he hand-crafted an entire bronze remodel of the SRC Trophy itself, complete with hidden storage for the original crystal version, because apparently he\'s also a metalworker in his spare time. He picked up Glory Shot wins in 2012 (a Tiger Musky) and 2014 (a bluefish), and finished 2nd overall in the 2014 tournament, presumably while still admiring his own trophy work.',
   },
   {
     name: "Mike Santimaw",
     matchKeys: ["Mike Santimaw", "Santimaw"],
     blurb:
-      'Beloved for running the informal "Lunchtime Cheeseburger Delivery Service" at camp every year — a tradition the MOC didn\'t create but fully embraces. Was the tournament\'s only Shiner in its highest-volume fishing year (2016, 124 fish caught).',
+      'Mike Santimaw started coming to the SRC in 2001, and although he no longer makes it to the beach each year, he still remains part of the SRC IT team. His scorecard was never the headline, but his lunchtime menu was: he\'s the man behind the informal "Lunchtime Cheeseburger Delivery Service," a beloved camp tradition the MOC didn\'t invent but happily takes credit for enjoying. In 2016 — the single highest-volume fishing year in SRC history, with 124 fish landed — Mike was the only angler at the entire tournament who caught nothing at all, which feels almost impressively specific.',
   },
   {
     name: "Jeff Spear",
     matchKeys: ["Jeff Spear", "Spear"],
     blurb:
-      'A Participant since 1999 and the only SRC angler ever to catch a gamefish using an artificial lure — a flounder back in 2001, long before lure bonuses existed. Repeatedly described as "the highest-ranked angler never to have won a Championship," a title that persisted for years across multiple newsletters.',
+      'Jeff Spear has fished the SRC since 1999 and holds a genuinely unique distinction: he\'s the only angler in tournament history to catch a gamefish on an artificial lure before lure bonuses even existed — a flounder, back in 2001, apparently just for the fun of it. For years afterward, the newsletter kept handing him the same bittersweet title: the highest-ranked angler never to have won a Championship. It\'s not clear if that\'s finally changed, but it wasn\'t for lack of trying.',
   },
   {
     name: "Sean Sullivan",
     matchKeys: ["Sean Sullivan", "Sullivan"],
     blurb:
-      'Won a controversial first Championship in 2007 by catching just two eels during a hurricane-forced relocation, and endured 11 years of ridicule for it before "silencing" his critics with a legitimate 2nd Championship in 2018, landing a new record 11" Black Drum.',
+      'Sean Sullivan has been part of the SRC since 1999, and won his first Championship in 2007 under, let\'s say, unusual circumstances — a hurricane forced a last-minute relocation, and he took the title with a grand total of two eels. The roster spent years ribbing him for it. He finally silenced everybody in 2018 with a thoroughly legitimate second Championship and a new record 11" Black Drum, proving eels aside, the man can fish.',
   },
   {
     name: "Chris Vlot",
     matchKeys: ["Chris Vlot", "Vlot"],
     blurb:
-      "The camp's cook, a fixture since 1999 (24 consecutive tournaments at one point). Holds the smallest championship margin in SRC history — a disputed 70-point win in 2001 via a contested measuring technique — a controversy that directly led to the creation of the Official SRC Measuring Device Rule. Won the 2020 Glory Shot with a carp.",
+      "Chris Vlot has been the SRC's unofficial camp cook since 1999, and also happens to hold the smallest championship margin in tournament history — a 70-point win in 2001 that came down to a disputed measuring technique, a controversy so contentious it directly created the SRC's Official Measuring Device Rule. He's kept things simpler since, picking up the 2020 Glory Shot with a carp.",
   },
 ];
 

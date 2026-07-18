@@ -15,7 +15,9 @@ delete from public.catches;
 delete from public.penalties;
 delete from public.glory_pics;
 delete from public.notifications;
-delete from public.tournaments;
+-- Only the test era (2026+) — the 1998-2025 historical tournament archive is
+-- permanent and must never be wiped by this script.
+delete from public.tournaments where year >= 2026;
 
 -- ---------- RESET: records back to the official 2026 rulebook baseline ------
 -- (undoes any record broken by a test catch). Source: src/domain/records.ts /
