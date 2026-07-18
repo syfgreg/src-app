@@ -372,6 +372,35 @@ export async function reopenGloryVote(year: number) {
   await updateSettings({ gloryFavState: "OPEN", gloryFavLockedVoters: [] });
 }
 
+export interface GloryFavHistoryEntry {
+  id: string;
+  year: number;
+  photoUrl: string;
+  submitter: string;
+  description?: string;
+  votes: number;
+  isWinner: boolean;
+}
+
+/** The permanent Glory Shot Fav archive — every ballot ever closed, in full. */
+export async function listGloryFavHistory(): Promise<GloryFavHistoryEntry[]> {
+  if (!cloudEnabled || !supabase) return [];
+  const { data, error } = await supabase
+    .from("glory_fav_history")
+    .select("*")
+    .order("year", { ascending: false });
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    year: r.year,
+    photoUrl: r.photo_url,
+    submitter: r.submitter,
+    description: r.description ?? undefined,
+    votes: r.votes,
+    isWinner: r.is_winner,
+  }));
+}
+
 export interface BackupFile {
   name: string;
   url: string;

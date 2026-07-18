@@ -8,13 +8,23 @@ import { NewsletterPage } from "../pages/NewsletterPage";
 import { CommandAnglerHistory } from "./CommandAnglerHistory";
 import { CommandCatchReview } from "./CommandCatchReview";
 import { CommandTournaments } from "./CommandTournaments";
+import { CommandGloryShots } from "./CommandGloryShots";
 import { CommandLoginPage } from "./CommandLoginPage";
 import { needsRuling } from "../pages/ScorecardsReviewPage";
 import { computeStandings } from "../domain/standings";
 import { HALL_OF_FAME } from "../domain/accolades";
 import { Icon, type IconName } from "../components/Icon";
 
-type Nav = "dashboard" | "metrics" | "tournaments" | "roster" | "history" | "catches" | "records" | "newsletters";
+type Nav =
+  | "dashboard"
+  | "metrics"
+  | "tournaments"
+  | "roster"
+  | "history"
+  | "catches"
+  | "records"
+  | "gloryShots"
+  | "newsletters";
 
 const NAV_ITEMS: { key: Nav; label: string; icon: IconName }[] = [
   { key: "dashboard", label: "Dashboard", icon: "grid" },
@@ -24,6 +34,7 @@ const NAV_ITEMS: { key: Nav; label: string; icon: IconName }[] = [
   { key: "history", label: "Angler History", icon: "search" },
   { key: "catches", label: "Catch Review", icon: "scorecard" },
   { key: "records", label: "Record Book", icon: "rules" },
+  { key: "gloryShots", label: "Glory Shots", icon: "camera" },
   { key: "newsletters", label: "Newsletters", icon: "message" },
 ];
 
@@ -91,6 +102,7 @@ export function CommandApp() {
         {nav === "catches" && <CommandCatchReview />}
         {nav === "tournaments" && <CommandTournaments />}
         {nav === "records" && <RecordsPage onBack={goDashboard} />}
+        {nav === "gloryShots" && <CommandGloryShots />}
         {nav === "newsletters" && <NewsletterPage onBack={goDashboard} />}
         {adminSectionFor[nav] && (
           <AdminPage onBack={goDashboard} initialSection={adminSectionFor[nav]} />
