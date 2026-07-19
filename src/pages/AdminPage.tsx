@@ -676,10 +676,6 @@ function CatchModeration() {
     await decideCatch(id, status, "M.O.C.");
     const angler = users.find((u) => u.id === c.userId);
     if (status === "APPROVED") {
-      // Points are never revealed in notifications — standings drop at Publish.
-      await broadcast(
-        `M.O.C. VERIFIED: ${angler?.nickname ?? angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
-      );
       // A verified record breaker rewrites the record book
       if (c.isRecordBreaker && angler) {
         const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());

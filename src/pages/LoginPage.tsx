@@ -5,7 +5,8 @@ import pkg from "../../package.json";
 export function LoginPage() {
   const { login, register, resetPassword, cloud } = useApp();
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,8 +20,15 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     setNotice(null);
+    if (mode === "register" && (!firstName.trim() || !lastName.trim())) {
+      setError("First and last name are required.");
+      setBusy(false);
+      return;
+    }
     const err =
-      mode === "login" ? await login(email, password) : await register(name, nickname, email, password);
+      mode === "login"
+        ? await login(email, password)
+        : await register(`${firstName.trim()} ${lastName.trim()}`, nickname, email, password);
     if (err) setError(err);
     setBusy(false);
   };
@@ -53,12 +61,23 @@ export function LoginPage() {
           {mode === "register" && (
             <>
               <label className="field">
-                <span>Angler Name</span>
+                <span>First Name</span>
                 <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Sean Sullivan"
-                  autoComplete="name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Sean"
+                  autoComplete="given-name"
+                  required
+                />
+              </label>
+              <label className="field">
+                <span>Last Name</span>
+                <input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Sullivan"
+                  autoComplete="family-name"
+                  required
                 />
               </label>
               <label className="field">

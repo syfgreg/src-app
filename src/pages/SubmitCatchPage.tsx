@@ -135,9 +135,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
       // Only announce verified catches — and never with points (reveal at the end).
       // A pending new species stays quiet until the M.O.C. verifies it.
       if (status === "APPROVED") {
-        await broadcast(
-          `${user.nickname ?? user.name} just landed a ${finalSpecies}${gearType === "LURE" ? " on an artificial lure" : ""}!`,
-        );
+        await broadcast(`${user.nickname ?? user.name} just landed a ${finalSpecies}!`);
       }
       setPhase("");
       // If the AI left a verdict to read, wait for the angler to acknowledge it
