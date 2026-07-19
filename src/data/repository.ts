@@ -194,12 +194,22 @@ export async function postSmackTalk(userId: string, message: string): Promise<vo
   await broadcast(line(name));
 }
 
+const SMACK_TALK_REPLY_NOTIFICATIONS = [
+  (n: string) => `${n} added fuel to the fire on Smack Talk!`,
+  (n: string) => `${n} jumped into the fray with a reply!`,
+  (n: string) => `${n} isn't backing down — fired back a reply!`,
+  (n: string) => `${n} had the last word (for now) on Smack Talk!`,
+  (n: string) => `${n} couldn't resist firing back!`,
+];
+
 export async function addSmackTalkReply(postId: string, reply: GloryComment) {
   const post = await db.smackTalk.get(postId);
   if (!post) return;
   const replies = [...post.replies, reply];
   await db.smackTalk.update(postId, { replies });
   await remoteWrite({ table: "smack_talk", op: "update", key: postId, payload: { replies }, at: now() });
+  const line = SMACK_TALK_REPLY_NOTIFICATIONS[Math.floor(Math.random() * SMACK_TALK_REPLY_NOTIFICATIONS.length)];
+  await broadcast(line(reply.userName));
 }
 
 /** M.O.C.: enter an existing glory shot into the tournament's Glory Shot Fav vote. */
