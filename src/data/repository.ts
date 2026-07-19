@@ -12,6 +12,7 @@ import type {
   Penalty,
   RoleTag,
   Settings,
+  SmackTalkPost,
   Tournament,
 } from "../domain/types";
 
@@ -161,6 +162,23 @@ export async function postGlory(entry: {
     photoField: "photo_url",
     at: g.createdAt,
   });
+}
+
+/** Smack Talk board posts are open the same window as Glory Shot submissions. */
+export async function postSmackTalk(userId: string, message: string): Promise<void> {
+  const text = message.trim().slice(0, 150);
+  if (!text || !gloryShotsOpen()) return;
+  const p: SmackTalkPost = { id: uuid(), userId, message: text, createdAt: now() };
+  await db.smackTalk.put(p);
+  await remoteWrite({
+    table: "smack_talk",
+    op: "upsert",
+    key: p.id,
+    payload: { id: p.id, user_id: p.userId, message: p.message },
+    at: p.createdAt,
+  });
+  const author = await db.users.get(userId);
+  await broadcast(`${author?.name ?? "An angler"} laid down some smack talk!`);
 }
 
 /** M.O.C.: enter an existing glory shot into the tournament's Glory Shot Fav vote. */

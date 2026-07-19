@@ -13,6 +13,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
     { screen: "find-angler", icon: "search", title: "Find an Angler", sub: "Search any participant, past or present" },
     { screen: "records", icon: "award", title: "Record Book", sub: "Standing Sea Robin records by species" },
     { screen: "memories", icon: "archive", title: "Memories Vault", sub: "SRC Memories" },
+    { screen: "smack-talk", icon: "scribbles", title: "Smack Talk", sub: "The trash talk board — open when Glory Shots are" },
     { screen: "glory-archive", icon: "camera", title: "Glory Shots Archive", sub: "Every Glory Shot Fav ballot, year over year" },
     { screen: "admin", icon: "shield", title: "M.O.C. Panel", sub: "Tournament, scorecards, roster, catches, scoring", mocOnly: true },
   ];

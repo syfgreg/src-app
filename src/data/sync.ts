@@ -12,6 +12,7 @@ import type {
   Penalty,
   RecordEntry,
   Settings,
+  SmackTalkPost,
   Tournament,
   User,
 } from "../domain/types";
@@ -36,6 +37,7 @@ const KEY_FIELD: Record<OutboxItem["table"], string> = {
   tournaments: "id",
   invites: "id",
   penalties: "id",
+  smack_talk: "id",
 };
 
 // ---------- row mappers (snake_case ⇄ camelCase) ----------------------------
@@ -140,6 +142,13 @@ const toPenalty = (r: any): Penalty => ({
   createdAt: ms(r.created_at),
 });
 
+const toSmackTalk = (r: any): SmackTalkPost => ({
+  id: r.id,
+  userId: r.user_id,
+  message: r.message,
+  createdAt: ms(r.created_at),
+});
+
 async function toNotification(r: any): Promise<AppNotification> {
   const existing = await db.notifications.get(r.id);
   return { id: r.id, message: r.message, at: ms(r.created_at), read: existing?.read ?? false };
@@ -148,7 +157,7 @@ async function toNotification(r: any): Promise<AppNotification> {
 // ---------- initial pull ----------------------------------------------------
 export async function pullAll() {
   if (!supabase) return;
-  const [profiles, settings, records, catches, glory, notifs, newsletters, tournaments, invites, penalties] =
+  const [profiles, settings, records, catches, glory, notifs, newsletters, tournaments, invites, penalties, smackTalk] =
     await Promise.all([
       supabase.from("profiles").select("*"),
       supabase.from("settings").select("*").eq("id", 1).maybeSingle(),
@@ -161,6 +170,7 @@ export async function pullAll() {
       supabase.from("tournaments").select("*").order("created_at", { ascending: false }),
       supabase.from("invites").select("*").order("created_at", { ascending: false }),
       supabase.from("penalties").select("*"),
+      supabase.from("smack_talk").select("*").order("created_at", { ascending: false }).limit(200),
     ]);
 
   if (profiles.data) await db.users.bulkPut(profiles.data.map(toUser));
@@ -172,6 +182,7 @@ export async function pullAll() {
   if (tournaments.data) await db.tournaments.bulkPut(tournaments.data.map(toTournament));
   if (invites.data) await db.invites.bulkPut(invites.data.map(toInvite));
   if (penalties.data) await db.penalties.bulkPut(penalties.data.map(toPenalty));
+  if (smackTalk.data) await db.smackTalk.bulkPut(smackTalk.data.map(toSmackTalk));
   if (notifs.data) {
     for (const n of notifs.data) await db.notifications.put(await toNotification(n));
   }
@@ -220,6 +231,7 @@ export function subscribe() {
   on("tournaments", async (r) => db.tournaments.put(toTournament(r)), async (r) => db.tournaments.delete(r.id));
   on("invites", async (r) => db.invites.put(toInvite(r)), async (r) => db.invites.delete(r.id));
   on("penalties", async (r) => db.penalties.put(toPenalty(r)), async (r) => db.penalties.delete(r.id));
+  on("smack_talk", async (r) => db.smackTalk.put(toSmackTalk(r)), async (r) => db.smackTalk.delete(r.id));
   on("settings", async (r) => db.settings.put(toSettings(r)), async () => {});
   on(
     "notifications",

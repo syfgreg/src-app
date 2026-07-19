@@ -42,7 +42,8 @@ export type IconName =
   | "thermometer"
   | "arrow-up"
   | "arrow-down"
-  | "share";
+  | "share"
+  | "scribbles";
 
 const PATHS: Record<IconName, JSX.Element> = {
   scorecard: (
@@ -218,6 +219,14 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M12 15V3.5" />
       <path d="M8 7l4-4 4 4" />
       <path d="M7 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1" />
+    </>
+  ),
+  scribbles: (
+    <>
+      <path d="M5 3.5h10.5L19 7v13.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" />
+      <path d="M15.5 3.5V7H19" />
+      <path d="M6.5 11c1-1.3 2-1.3 3 0s2 1.3 3 0 2-1.3 3-1.3" />
+      <path d="M6.5 15.3c1-1.3 2-1.3 3 0s2 1.3 3 0" />
     </>
   ),
 };

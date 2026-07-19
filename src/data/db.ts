@@ -9,6 +9,7 @@ import type {
   Penalty,
   RecordEntry,
   Settings,
+  SmackTalkPost,
   Tournament,
   User,
 } from "../domain/types";
@@ -33,6 +34,7 @@ class SeaRobinDB extends Dexie {
   tournaments!: Table<Tournament, string>;
   invites!: Table<Invite, string>;
   penalties!: Table<Penalty, string>;
+  smackTalk!: Table<SmackTalkPost, string>;
   outbox!: Table<OutboxItem, number>;
 
   constructor() {
@@ -69,6 +71,10 @@ class SeaRobinDB extends Dexie {
     // v5 adds M.O.C. scoring penalties (additive).
     this.version(5).stores({
       penalties: "id, userId, tournamentYear",
+    });
+    // v6 adds the Smack Talk board (additive).
+    this.version(6).stores({
+      smackTalk: "id, userId, createdAt",
     });
   }
 }

@@ -216,6 +216,15 @@ create table if not exists public.glory_fav_history (
 );
 create index if not exists glory_fav_history_year_idx on public.glory_fav_history (year);
 
+-- ---------- smack talk (trash-talk board, open the same window as glory shots) ----
+create table if not exists public.smack_talk (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  message    text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists smack_talk_created_idx on public.smack_talk (created_at);
+
 -- ---------- notifications (shared broadcast feed) ----------------------------
 -- read/unread state is tracked per-device on the client, not here.
 create table if not exists public.notifications (
@@ -254,6 +263,7 @@ alter table public.tournaments   enable row level security;
 alter table public.invites       enable row level security;
 alter table public.penalties     enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.smack_talk enable row level security;
 
 -- profiles: everyone authed reads (leaderboard needs names); edit self; M.O.C. edits anyone
 drop policy if exists profiles_read   on public.profiles;
@@ -349,6 +359,16 @@ create policy penalties_read  on public.penalties for select to authenticated us
 create policy penalties_write on public.penalties for all to authenticated
   using (public.is_moc()) with check (public.is_moc());
 
+-- smack talk: everyone reads; insert your own; M.O.C. can delete any (moderation)
+drop policy if exists smack_talk_read   on public.smack_talk;
+drop policy if exists smack_talk_insert on public.smack_talk;
+drop policy if exists smack_talk_delete on public.smack_talk;
+create policy smack_talk_read   on public.smack_talk for select to authenticated using (true);
+create policy smack_talk_insert on public.smack_talk for insert to authenticated
+  with check (user_id = auth.uid());
+create policy smack_talk_delete on public.smack_talk for delete to authenticated
+  using (public.is_moc());
+
 -- push subscriptions: each device manages only its own registration
 drop policy if exists push_subs_read   on public.push_subscriptions;
 drop policy if exists push_subs_insert on public.push_subscriptions;
@@ -373,6 +393,7 @@ alter publication supabase_realtime add table public.newsletters;
 alter publication supabase_realtime add table public.tournaments;
 alter publication supabase_realtime add table public.invites;
 alter publication supabase_realtime add table public.penalties;
+alter publication supabase_realtime add table public.smack_talk;
 
 -- ============================================================================
 -- Storage buckets (public read, authenticated write)

@@ -93,6 +93,13 @@ export interface GloryPic {
   createdAt: number;
 }
 
+export interface SmackTalkPost {
+  id: string;
+  userId: string;
+  message: string;
+  createdAt: number;
+}
+
 export interface SpeciesConfig {
   name: string;
   /** Scoring category — drives the size-banded points-per-inch (see scoring.ts). */
@@ -210,7 +217,8 @@ export interface OutboxItem {
     | "newsletters"
     | "tournaments"
     | "invites"
-    | "penalties";
+    | "penalties"
+    | "smack_talk";
   op: "upsert" | "update" | "delete";
   key: string;
   payload: Record<string, unknown>;
