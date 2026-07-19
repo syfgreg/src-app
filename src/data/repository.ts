@@ -349,7 +349,6 @@ export async function closeGloryVote() {
   const settings = await db.settings.get(1);
   await updateSettings({ gloryFavState: "CLOSED" });
   await archiveGloryFavBallot(settings?.tournamentYear ?? new Date().getFullYear());
-  await broadcast("📸 Glory Shot Fav voting is now CLOSED — winner announced soon!");
 }
 
 /** Reveal the Glory Shot Fav winner to everyone (M.O.C. announces verbally first). */
