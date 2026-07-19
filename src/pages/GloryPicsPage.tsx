@@ -77,7 +77,7 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
       <div className="page-kicker" style={{ marginTop: onBack ? 12 : 0 }}>Off-season feed</div>
       <h2 className="page-title">Glory Shots</h2>
       <p className="page-sub">
-        Summer catches only — the between-tournaments bragging board.
+        Off-season catches only — the between-tournaments bragging board. Open January 1 through September 30.
         {!submissionsOpen && " Submissions are closed for the season — back January 1st."}
       </p>
 

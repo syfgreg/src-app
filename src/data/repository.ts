@@ -163,6 +163,9 @@ export async function postGlory(entry: {
     photoField: "photo_url",
     at: g.createdAt,
   });
+  const author = await db.users.get(entry.userId);
+  const name = author?.nickname ?? author?.name ?? "An angler";
+  await broadcast(`${name} just submitted a Glory Shot! Go check it out!`);
 }
 
 const SMACK_TALK_NOTIFICATIONS = [
