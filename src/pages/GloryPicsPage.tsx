@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { addComment, lockGloryVote, postGlory, voteGloryFav } from "../data/repository";
+import { addComment, gloryShotsOpen, lockGloryVote, postGlory, voteGloryFav } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { Photo } from "../components/BlobImage";
 import { BackButton } from "../components/BackButton";
@@ -55,8 +55,10 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
     }
   };
 
+  const submissionsOpen = gloryShotsOpen();
+
   const post = async () => {
-    if (!photo || !user) return;
+    if (!photo || !user || !submissionsOpen) return;
     await postGlory({ userId: user.id, photo, description: description.trim() });
     setPhoto(null);
     setDescription("");
@@ -76,7 +78,7 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
       <h2 className="page-title">Glory Shots</h2>
       <p className="page-sub">
         Summer catches only — the between-tournaments bragging board.
-        {settings && !settings.offSeasonMode && " (The M.O.C. has the feed set to tournament mode.)"}
+        {!submissionsOpen && " Submissions are closed for the season — back January 1st."}
       </p>
 
       {gloryFavState !== "OFF" && (
@@ -161,25 +163,34 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
         </div>
       )}
 
-      <div className="card">
-        <h3>Post a glory shot</h3>
-        <label className="field">
-          <span>Photo</span>
-          <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
-        </label>
-        <label className="field">
-          <span>The story</span>
-          <textarea
-            rows={2}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="34-inch striper off Montauk, first cast, nobody believes me…"
-          />
-        </label>
-        <button className="btn seafoam" onClick={post} disabled={!photo}>
-          Post it
-        </button>
-      </div>
+      {submissionsOpen ? (
+        <div className="card">
+          <h3>Post a glory shot</h3>
+          <label className="field">
+            <span>Photo</span>
+            <input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+          </label>
+          <label className="field">
+            <span>The story</span>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="34-inch striper off Montauk, first cast, nobody believes me…"
+            />
+          </label>
+          <button className="btn seafoam" onClick={post} disabled={!photo}>
+            Post it
+          </button>
+        </div>
+      ) : (
+        <div className="empty-state">
+          <div className="empty-icon">
+            <Icon name="camera" size={30} />
+          </div>
+          Glory Shot submissions run January 1st through September 30th. Check back for the new season!
+        </div>
+      )}
 
       {pics.length === 0 && (
         <div className="empty-state">

@@ -1249,15 +1249,6 @@ function ScoringAdmin() {
             onBlur={(e) => patch({ tournamentYear: num(e.target.value, settings.tournamentYear) })}
           />
         </label>
-        <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            type="checkbox"
-            checked={settings.offSeasonMode}
-            onChange={(e) => patch({ offSeasonMode: e.target.checked })}
-            style={{ width: "auto" }}
-          />
-          <span style={{ margin: 0 }}>Off-season mode (Glory Shots feed active)</span>
-        </label>
       </div>
 
       <div className="card">

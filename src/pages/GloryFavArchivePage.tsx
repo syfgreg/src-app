@@ -73,26 +73,37 @@ export function GloryFavArchivePage({ onBack }: { onBack: () => void }) {
               </button>
               {isOpen && (
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-                  {rows.map((r) => (
-                    <button
-                      type="button"
-                      key={r.id}
-                      onClick={() => setLightbox(r)}
-                      style={{ padding: 0, border: "none", background: "none", cursor: "pointer", position: "relative" }}
-                    >
-                      <Photo url={r.photoUrl} alt={r.submitter} className="glory-admin-thumb" />
-                      {r.isWinner && (
-                        <span
-                          style={{
-                            position: "absolute", top: -4, right: -4, background: "var(--gold)", color: "var(--on-accent)",
-                            borderRadius: "50%", width: 18, height: 18, display: "grid", placeItems: "center",
-                          }}
-                        >
-                          <Icon name="trophy" size={11} />
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                  {rows.map((r) =>
+                    r.photoUrl ? (
+                      <button
+                        type="button"
+                        key={r.id}
+                        onClick={() => setLightbox(r)}
+                        style={{ padding: 0, border: "none", background: "none", cursor: "pointer", position: "relative" }}
+                      >
+                        <Photo url={r.photoUrl} alt={r.submitter} className="glory-admin-thumb" />
+                        {r.isWinner && (
+                          <span
+                            style={{
+                              position: "absolute", top: -4, right: -4, background: "var(--gold)", color: "var(--on-accent)",
+                              borderRadius: "50%", width: 18, height: 18, display: "grid", placeItems: "center",
+                            }}
+                          >
+                            <Icon name="trophy" size={11} />
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <div
+                        key={r.id}
+                        className="tag"
+                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", fontSize: 12.5 }}
+                      >
+                        {r.isWinner && <Icon name="trophy" size={12} style={{ color: "var(--gold)" }} />}
+                        {r.submitter}
+                      </div>
+                    ),
+                  )}
                 </div>
               )}
             </div>

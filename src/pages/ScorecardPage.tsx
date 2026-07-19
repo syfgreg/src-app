@@ -116,7 +116,11 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
     ) ?? [];
 
   const myScore = user ? anglerScore(user.id, allApproved, penByUser) : null;
-  const myTotal = myScore?.total ?? 0;
+  // The Full Monty can flip to a different angler at any moment while the
+  // tournament is still live, so keep the bonus (and its badge) hidden from
+  // an angler's own card until the M.O.C. ends the tournament for real.
+  const revealFullMonty = settings?.state !== "LIVE";
+  const myTotal = myScore ? (revealFullMonty ? myScore.total : myScore.baseTotal) : 0;
 
   if (!user) return null;
 
@@ -245,7 +249,7 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
             <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <span>{active?.name ?? `S.R.C. ${year}`} · {tournamentLabel}</span>
               <RoleBadge role={user.roleTag} />
-              {myScore?.fullMonty && <span className="tag honor">Full Monty</span>}
+              {revealFullMonty && myScore?.fullMonty && <span className="tag honor">Full Monty</span>}
               <span className="muted-hint">· {mine.length} {mine.length === 1 ? "catch" : "catches"} · tap to {cardOpen ? "hide" : "view"}</span>
             </div>
           </div>

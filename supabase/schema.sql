@@ -207,7 +207,7 @@ create table if not exists public.glory_fav_history (
   id          uuid primary key default gen_random_uuid(),
   year        int not null,
   source_id   uuid,                             -- the original glory_pics.id (not FK'd — that row may later be deleted)
-  photo_url   text not null,
+  photo_url   text,                             -- null for text-only pre-app historical entries (e.g. from the newsletter archive)
   submitter   text not null,
   description text,
   votes       int not null default 0,

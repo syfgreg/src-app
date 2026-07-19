@@ -5,7 +5,7 @@ create table if not exists public.glory_fav_history (
   id          uuid primary key default gen_random_uuid(),
   year        int not null,
   source_id   uuid,
-  photo_url   text not null,
+  photo_url   text,                             -- null for text-only pre-app historical entries
   submitter   text not null,
   description text,
   votes       int not null default 0,
@@ -13,6 +13,7 @@ create table if not exists public.glory_fav_history (
   archived_at timestamptz not null default now()
 );
 create index if not exists glory_fav_history_year_idx on public.glory_fav_history (year);
+alter table public.glory_fav_history alter column photo_url drop not null;
 
 alter table public.glory_fav_history enable row level security;
 

@@ -114,6 +114,13 @@ export async function broadcast(message: string, title?: string) {
   triggerPush(message, title); // wakes devices even if fully closed (Web Push)
 }
 
+/** Glory Shot submissions to the general feed are open Jan 1 – Sep 30 each
+ * year. Doesn't apply to the M.O.C. directly curating the ballot (that can
+ * happen any time, including during the tournament itself in November). */
+export function gloryShotsOpen(): boolean {
+  return new Date().getMonth() <= 8; // Jan(0)..Sep(8) inclusive; Oct(9)+ closed
+}
+
 export async function postGlory(entry: {
   userId: string;
   photo: Blob;
@@ -121,6 +128,7 @@ export async function postGlory(entry: {
   /** Set to immediately enter this shot in the tournament's Glory Shot Fav vote. */
   nominatedYear?: number;
 }): Promise<void> {
+  if (entry.nominatedYear == null && !gloryShotsOpen()) return;
   const g: GloryPic = {
     id: uuid(),
     userId: entry.userId,
@@ -375,7 +383,8 @@ export async function reopenGloryVote(year: number) {
 export interface GloryFavHistoryEntry {
   id: string;
   year: number;
-  photoUrl: string;
+  /** Unset for text-only pre-app historical entries (e.g. from the newsletter archive). */
+  photoUrl?: string;
   submitter: string;
   description?: string;
   votes: number;
@@ -393,7 +402,7 @@ export async function listGloryFavHistory(): Promise<GloryFavHistoryEntry[]> {
   return data.map((r) => ({
     id: r.id,
     year: r.year,
-    photoUrl: r.photo_url,
+    photoUrl: r.photo_url ?? undefined,
     submitter: r.submitter,
     description: r.description ?? undefined,
     votes: r.votes,
