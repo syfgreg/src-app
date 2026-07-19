@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { addSmackTalkReply, gloryShotsOpen, postSmackTalk } from "../data/repository";
+import { addSmackTalkReply, deleteSmackTalk, gloryShotsOpen, postSmackTalk } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
@@ -25,6 +25,10 @@ export function SmackTalkPage({ onBack }: { onBack?: () => void }) {
     if (!text || !user) return;
     await addSmackTalkReply(postId, { userName: user.nickname ?? user.name, text, at: Date.now() });
     setReplyDrafts((d) => ({ ...d, [postId]: "" }));
+  };
+
+  const remove = (postId: string) => {
+    if (confirm("Delete this thread from the Smack Talk board?")) deleteSmackTalk(postId);
   };
 
   return (
@@ -75,6 +79,11 @@ export function SmackTalkPage({ onBack }: { onBack?: () => void }) {
                 <span style={{ marginLeft: "auto", color: "var(--sand-faint)", fontSize: 12.5 }}>
                   {new Date(p.createdAt).toLocaleDateString()}
                 </span>
+                {user?.roleTag === "MOC" && (
+                  <button className="btn small ghost" onClick={() => remove(p.id)} aria-label="Delete thread">
+                    <Icon name="trash" size={14} />
+                  </button>
+                )}
               </div>
               <p style={{ fontSize: 14.5, marginTop: 6 }}>{p.message}</p>
               {p.replies.map((r, i) => (

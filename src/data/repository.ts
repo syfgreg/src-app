@@ -196,10 +196,10 @@ export async function postSmackTalk(userId: string, message: string): Promise<vo
 
 const SMACK_TALK_REPLY_NOTIFICATIONS = [
   (n: string) => `${n} added fuel to the fire on Smack Talk!`,
-  (n: string) => `${n} jumped into the fray with a reply!`,
-  (n: string) => `${n} isn't backing down — fired back a reply!`,
+  (n: string) => `${n} jumped into the fray with a reply on the Smack Talk board!`,
+  (n: string) => `${n} isn't backing down — fired back a reply on the Smack Talk board!`,
   (n: string) => `${n} had the last word (for now) on Smack Talk!`,
-  (n: string) => `${n} couldn't resist firing back!`,
+  (n: string) => `${n} couldn't resist firing back on the Smack Talk board!`,
 ];
 
 export async function addSmackTalkReply(postId: string, reply: GloryComment) {
@@ -210,6 +210,12 @@ export async function addSmackTalkReply(postId: string, reply: GloryComment) {
   await remoteWrite({ table: "smack_talk", op: "update", key: postId, payload: { replies }, at: now() });
   const line = SMACK_TALK_REPLY_NOTIFICATIONS[Math.floor(Math.random() * SMACK_TALK_REPLY_NOTIFICATIONS.length)];
   await broadcast(line(reply.userName));
+}
+
+/** M.O.C.: remove a thread from the Smack Talk board (moderation). */
+export async function deleteSmackTalk(id: string) {
+  await db.smackTalk.delete(id);
+  await remoteWrite({ table: "smack_talk", op: "delete", key: id, payload: {}, at: now() });
 }
 
 /** M.O.C.: enter an existing glory shot into the tournament's Glory Shot Fav vote. */
