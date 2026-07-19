@@ -20,7 +20,7 @@ export const ANGLER_LORE: AnglerLore[] = [
   },
   {
     name: "Pete Dzien",
-    matchKeys: ["Pete Dzien", "Dzien"],
+    matchKeys: ["Pete Dzien", "Dzien", "Pete Dzein", "Dzein"],
     blurb:
       'Pete Dzien has been part of the SRC since 1998, but he\'s best remembered for one specific sunrise in 2010, when he charged the beach at 5am hollering that he was going to win the whole thing — and then actually did, becoming only the second angler ever to win the Championship twice, on the strength of two flounder and a 20.5" shark. He backed it up in 2013 with a new record 21.5" Stargazer, because apparently yelling at the ocean works.',
   },

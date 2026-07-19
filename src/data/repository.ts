@@ -43,6 +43,7 @@ const catchPayload = (c: CatchEntry) => ({
   ai_notes: c.aiNotes ?? null,
   status: c.status,
   verified_by: c.verifiedBy ?? null,
+  witness_id: c.witnessId ?? null,
 });
 
 export async function submitCatch(entry: Omit<CatchEntry, "id">): Promise<CatchEntry> {

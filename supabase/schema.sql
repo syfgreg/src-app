@@ -167,6 +167,7 @@ create table if not exists public.catches (
   status            text not null default 'PENDING'
                     check (status in ('PENDING','APPROVED','REJECTED')),
   verified_by       text,
+  witness_id        uuid references public.profiles(id),
   created_at        timestamptz not null default now()
 );
 create index if not exists catches_year_idx on public.catches (tournament_year);

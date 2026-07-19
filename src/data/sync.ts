@@ -71,6 +71,7 @@ const toCatch = (r: any): CatchEntry => ({
   aiNotes: r.ai_notes ?? undefined,
   status: r.status,
   verifiedBy: r.verified_by ?? undefined,
+  witnessId: r.witness_id ?? undefined,
   createdAt: ms(r.created_at),
 });
 

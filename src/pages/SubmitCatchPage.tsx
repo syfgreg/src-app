@@ -12,6 +12,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const { user } = useApp();
   const settings = useLiveQuery(() => db.settings.get(1), []);
   const records = useLiveQuery(() => db.records.toArray(), [], []);
+  const users = useLiveQuery(() => db.users.toArray(), [], []);
   const year = settings?.tournamentYear ?? new Date().getFullYear();
   const activeTournament = useLiveQuery(async () => {
     const list = await db.tournaments.where("year").equals(year).toArray();
@@ -38,6 +39,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<CatchVerification | null>(null);
   const [awaitingAck, setAwaitingAck] = useState(false);
+  const [witnessId, setWitnessId] = useState("");
 
   const isOther = species === OTHER;
   const finalSpecies = isOther ? customSpecies.trim() : species;
@@ -50,6 +52,11 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
     if (isOther || !records || !lengthNum || lengthNum <= 0) return null;
     return scoreCatch(species, lengthNum, gearType, records);
   }, [isOther, records, species, lengthNum, gearType]);
+
+  // Trophy, potential record-breaker, or new-species catches need a witness — the
+  // M.O.C. or any other tournament participant — before they hit the ledger.
+  const witnessRequired = isOther || !!preview?.isTrophy || !!preview?.isRecordBreaker;
+  const witnessOptions = users.filter((u) => u.id !== user?.id);
 
   const onPhoto = (f: File | null) => {
     setPhoto(f);
@@ -75,6 +82,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
     if (lengthNum > 100) return setError("Over 100 inches? Take it up with the M.O.C. in person.");
     // A new species needs a photo — the M.O.C. (with the AI's help) IDs it from the picture.
     if (isOther && !photo) return setError("A photo is required for a new species so the M.O.C. can verify it.");
+    if (witnessRequired && !witnessId) return setError("A witness is required for a trophy, record, or new-species catch.");
 
     if ((settings.state ?? "SETUP") !== "LIVE") return setError("The tournament isn't open for submissions right now.");
 
@@ -120,6 +128,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         aiConfidence: ai?.confidence,
         aiNotes: ai?.notes,
         status,
+        witnessId: witnessRequired ? witnessId : undefined,
         createdAt: Date.now(),
       });
 
@@ -330,6 +339,22 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
             New species — this goes to the M.O.C. for review. The AI suggests an ID, but the M.O.C.
             has final sign-off and sets the points. It won't appear on the board until they approve it.
           </span>
+        </div>
+      )}
+
+      {witnessRequired && (
+        <div className="card">
+          <label className="field">
+            <span>Witness — required for a trophy, record, or new-species catch</span>
+            <select value={witnessId} onChange={(e) => setWitnessId(e.target.value)}>
+              <option value="">Choose a witness…</option>
+              {witnessOptions.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}{u.roleTag === "MOC" ? " (M.O.C.)" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       )}
 

@@ -69,6 +69,8 @@ export interface CatchEntry {
   aiNotes?: string;
   status: CatchStatus;
   verifiedBy?: string;
+  /** userId of the angler or M.O.C. who witnessed a trophy/record/new-species catch */
+  witnessId?: string;
   createdAt: number;
 }
 

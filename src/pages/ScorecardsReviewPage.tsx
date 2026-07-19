@@ -238,6 +238,11 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                     </span>
                   </div>
                   <div className="ruling-reason">{reasonFor(c)}</div>
+                  {c.witnessId && (
+                    <div className="ruling-reason">
+                      Witness: {users.find((x) => x.id === c.witnessId)?.name ?? "Unknown"}
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
