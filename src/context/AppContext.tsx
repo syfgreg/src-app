@@ -20,7 +20,7 @@ interface AppContextValue {
   /** true while the user is in a password-recovery session (clicked a reset link) */
   recovery: boolean;
   login: (email: string, password: string) => Promise<string | null>;
-  register: (name: string, email: string, password: string) => Promise<string | null>;
+  register: (name: string, nickname: string, email: string, password: string) => Promise<string | null>;
   magicLink: (email: string) => Promise<string | null>;
   resetPassword: (email: string) => Promise<string | null>;
   updatePassword: (password: string) => Promise<string | null>;
@@ -118,7 +118,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
+  const register = useCallback(async (name: string, nickname: string, email: string, password: string) => {
     const e = email.trim().toLowerCase();
     if (!name.trim()) return "Name is required.";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return "Enter a valid email address.";
@@ -127,7 +127,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email: e,
         password,
-        options: { data: { name: name.trim() }, emailRedirectTo: window.location.origin },
+        options: {
+          data: { name: name.trim(), nickname: nickname.trim() || undefined },
+          emailRedirectTo: window.location.origin,
+        },
       });
       if (error) return error.message;
       if (!data.session) return "Account created — check your email to confirm, then log in.";
@@ -140,6 +143,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: crypto.randomUUID(),
       email: e,
       name: name.trim(),
+      nickname: nickname.trim() || undefined,
       roleTag: invite?.roleTag ?? "JAFNG",
       passwordHash: await hashPassword(password),
       createdAt: Date.now(),

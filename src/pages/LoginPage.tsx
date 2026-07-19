@@ -6,6 +6,7 @@ export function LoginPage() {
   const { login, register, resetPassword, cloud } = useApp();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +20,7 @@ export function LoginPage() {
     setError(null);
     setNotice(null);
     const err =
-      mode === "login" ? await login(email, password) : await register(name, email, password);
+      mode === "login" ? await login(email, password) : await register(name, nickname, email, password);
     if (err) setError(err);
     setBusy(false);
   };
@@ -50,15 +51,26 @@ export function LoginPage() {
       <div className="page">
         <form className="card" onSubmit={submit}>
           {mode === "register" && (
-            <label className="field">
-              <span>Angler Name</span>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Sean Sullivan"
-                autoComplete="name"
-              />
-            </label>
+            <>
+              <label className="field">
+                <span>Angler Name</span>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Sean Sullivan"
+                  autoComplete="name"
+                />
+              </label>
+              <label className="field">
+                <span>Nickname (optional)</span>
+                <input
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder='"The Champ"'
+                  autoComplete="off"
+                />
+              </label>
+            </>
           )}
           <label className="field">
             <span>Email</span>

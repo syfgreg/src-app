@@ -76,11 +76,12 @@ begin
     order by created_at desc
     limit 1;
 
-  insert into public.profiles (id, email, name, role_tag)
+  insert into public.profiles (id, email, name, nickname, role_tag)
   values (
     new.id,
     new.email,
     coalesce(invited.name, new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    new.raw_user_meta_data->>'nickname',
     coalesce(invited.role_tag, 'JAFNG')
   )
   on conflict (id) do nothing;

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import {
-  broadcast,
   createPenalty,
   decideCatch,
   deleteCatch,
@@ -178,10 +177,6 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     const c = catches.find((x) => x.id === id);
     await decideCatch(id, "APPROVED", "M.O.C. — official");
     if (!c) return;
-    const angler = users.find((u) => u.id === c.userId);
-    await broadcast(
-      `M.O.C. VERIFIED: ${angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
-    );
     // Settle every competing record-breaker catch for this species at once —
     // largest length keeps the record + bonus (earliest catch breaks a tie),
     // every other catch loses the bonus and is marked verified too.

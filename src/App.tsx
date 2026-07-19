@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "./context/AppContext";
 import { Header } from "./components/Header";
 import { InstallPrompt } from "./components/InstallPrompt";
@@ -38,6 +38,10 @@ export default function App() {
   const { user, ready, recovery } = useApp();
   const [screen, setScreen] = useState<Screen>("leaderboard");
   const [focusAngler, setFocusAngler] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
 
   const viewAngler = (id: string) => {
     setFocusAngler(id);
