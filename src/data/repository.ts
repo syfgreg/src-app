@@ -179,7 +179,7 @@ export async function postSmackTalk(userId: string, message: string): Promise<vo
     at: p.createdAt,
   });
   const author = await db.users.get(userId);
-  await broadcast(`${author?.name ?? "An angler"} laid down some smack talk!`);
+  await broadcast(`${author?.nickname ?? author?.name ?? "An angler"} laid down some smack talk!`);
 }
 
 /** M.O.C.: enter an existing glory shot into the tournament's Glory Shot Fav vote. */

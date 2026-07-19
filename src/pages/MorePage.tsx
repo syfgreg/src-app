@@ -8,6 +8,7 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   if (!user) return null;
 
   const items: { screen: Screen; icon: IconName; title: string; sub: string; mocOnly?: boolean }[] = [
+    { screen: "admin", icon: "shield", title: "M.O.C. Panel", sub: "Tournament, scorecards, roster, catches, scoring", mocOnly: true },
     { screen: "newsletter", icon: "message", title: "Newsletter", sub: "News & dispatches from the M.O.C." },
     { screen: "results", icon: "trophy", title: "Final Results", sub: "Official standings when the tournament wraps" },
     { screen: "find-angler", icon: "search", title: "Find an Angler", sub: "Search any participant, past or present" },
@@ -15,7 +16,6 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
     { screen: "memories", icon: "archive", title: "Memories Vault", sub: "SRC Memories" },
     { screen: "smack-talk", icon: "scribbles", title: "Smack Talk", sub: "The trash talk board — open when Glory Shots are" },
     { screen: "glory-archive", icon: "camera", title: "Glory Shots Archive", sub: "Every Glory Shot Fav ballot, year over year" },
-    { screen: "admin", icon: "shield", title: "M.O.C. Panel", sub: "Tournament, scorecards, roster, catches, scoring", mocOnly: true },
   ];
 
   return (

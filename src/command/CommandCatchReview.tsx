@@ -26,11 +26,15 @@ export function CommandCatchReview() {
     .sort((a, b) => b.createdAt - a.createdAt);
 
   const nameFor = (uid: string) => users.find((u) => u.id === uid)?.name ?? "Unknown angler";
+  const nicknameFor = (uid: string) => {
+    const u = users.find((x) => x.id === uid);
+    return u?.nickname ?? u?.name ?? "An angler";
+  };
 
   const accept = async (c: CatchEntry) => {
     await decideCatch(c.id, "APPROVED", "M.O.C. — official");
     await broadcast(
-      `M.O.C. VERIFIED: ${nameFor(c.userId)} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
+      `M.O.C. VERIFIED: ${nicknameFor(c.userId)} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
     );
     if (c.isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
   };

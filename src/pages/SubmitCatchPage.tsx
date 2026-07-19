@@ -136,7 +136,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
       // A pending new species stays quiet until the M.O.C. verifies it.
       if (status === "APPROVED") {
         await broadcast(
-          `${user.name}${user.nickname ? ` "${user.nickname}"` : ""} just landed a ${finalSpecies}${gearType === "LURE" ? " on an artificial lure" : ""}!`,
+          `${user.nickname ?? user.name} just landed a ${finalSpecies}${gearType === "LURE" ? " on an artificial lure" : ""}!`,
         );
       }
       setPhase("");

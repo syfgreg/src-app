@@ -678,7 +678,7 @@ function CatchModeration() {
     if (status === "APPROVED") {
       // Points are never revealed in notifications — standings drop at Publish.
       await broadcast(
-        `M.O.C. VERIFIED: ${angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
+        `M.O.C. VERIFIED: ${angler?.nickname ?? angler?.name ?? "An angler"} landed a ${c.species}${c.gearType === "LURE" ? " on an artificial lure" : ""}!`,
       );
       // A verified record breaker rewrites the record book
       if (c.isRecordBreaker && angler) {
@@ -692,7 +692,7 @@ function CatchModeration() {
         }
       }
     } else {
-      await broadcast(`M.O.C. ruling: ${angler?.name ?? "an angler"}'s ${c.species} submission was rejected.`);
+      await broadcast(`M.O.C. ruling: ${angler?.nickname ?? angler?.name ?? "an angler"}'s ${c.species} submission was rejected.`);
     }
   };
 
