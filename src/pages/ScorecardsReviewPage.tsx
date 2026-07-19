@@ -133,9 +133,22 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
       const total = score?.total ?? 0;
       const sorted = [...cs].sort((a, b) => b.createdAt - a.createdAt);
       const hasApproved = cs.some((c) => c.status === "APPROVED");
-      return { uid, u, cs: sorted, total, score, hasApproved };
+      return { uid, u, cs: sorted, total, score, hasApproved, isShiner: false };
     })
     .sort((a, b) => b.total - a.total);
+
+  // Once the tournament has ended, give every roster angler who never scored
+  // (no catches at all) a zero-point card too — auto-validated, tagged Shiner,
+  // so the M.O.C. sees the full field instead of just who happened to fish.
+  const participantIds = active?.participantIds ?? [];
+  const roster = participantIds.length ? new Set(participantIds) : null;
+  const onRoster = (u: (typeof users)[number]) => !roster || roster.has(u.id);
+  const shinerRows = canValidate
+    ? users
+        .filter((u) => u.roleTag !== "MOC" && onRoster(u) && !byAngler.has(u.id))
+        .map((u) => ({ uid: u.id, u, cs: [] as CatchEntry[], total: 0, score: undefined, hasApproved: false, isShiner: true }))
+    : [];
+  rows.push(...shinerRows);
 
   const anglersToValidate = rows.filter((r) => r.hasApproved);
   const validatedCount = anglersToValidate.filter((r) => reviewed.has(r.uid)).length;
@@ -276,7 +289,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
       )}
 
       <div className="stagger">
-        {rows.map(({ uid, u, cs, total, score }) => {
+        {rows.map(({ uid, u, cs, total, score, isShiner }) => {
           const isOpen = !!open[uid];
           const pens = penListByUser.get(uid) ?? [];
           const deficit = penByUser.get(uid) ?? 0;
@@ -300,11 +313,12 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                   </div>
                   <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {u && <RoleBadge role={u.roleTag} />}
-                    {reviewed.has(uid) && (
+                    {(isShiner || reviewed.has(uid)) && (
                       <span className="tag approved">
                         <Icon name="check" /> Validated
                       </span>
                     )}
+                    {isShiner && <span className="tag danger">Shiner</span>}
                     {score?.fullMonty && <span className="tag honor">Full Monty</span>}
                     {deficit > 0 && <span className="tag danger">−{deficit.toLocaleString()} penalty</span>}
                     {score && score.trashCount > score.trashScored && (
@@ -421,16 +435,18 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                     </div>
                   </div>
 
-                  <button
-                    className={`btn ${reviewed.has(uid) ? "ghost" : "seafoam"}`}
-                    style={{ marginTop: 12 }}
-                    disabled={!canValidate}
-                    title={canValidate ? undefined : "Validation opens once the tournament has ended"}
-                    onClick={() => toggleValidate(uid)}
-                  >
-                    <Icon name={reviewed.has(uid) ? "x" : "check"} size={16} />{" "}
-                    {reviewed.has(uid) ? "Un-validate scorecard" : "Validate scorecard"}
-                  </button>
+                  {!isShiner && (
+                    <button
+                      className={`btn ${reviewed.has(uid) ? "ghost" : "seafoam"}`}
+                      style={{ marginTop: 12 }}
+                      disabled={!canValidate}
+                      title={canValidate ? undefined : "Validation opens once the tournament has ended"}
+                      onClick={() => toggleValidate(uid)}
+                    >
+                      <Icon name={reviewed.has(uid) ? "x" : "check"} size={16} />{" "}
+                      {reviewed.has(uid) ? "Un-validate scorecard" : "Validate scorecard"}
+                    </button>
+                  )}
                 </>
               )}
             </div>

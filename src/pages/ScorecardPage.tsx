@@ -210,10 +210,7 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
                   <div className="rank">{row.rank ?? "—"}</div>
                   <div className="who">
                     <div className="name" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <span>
-                        {row.u.name}
-                        {row.u.nickname ? ` "${row.u.nickname}"` : ""}
-                      </span>
+                      <span>{row.u.name}</span>
                       {row.isMoc && <span className="tag moc">M.O.C.</span>}
                     </div>
                     <div className="meta">
@@ -242,10 +239,7 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
           onClick={() => setCardOpen((o) => !o)}
         >
           <div className="who">
-            <div className="name">
-              {user.name}
-              {user.nickname ? ` "${user.nickname}"` : ""}
-            </div>
+            <div className="name">{user.name}</div>
             <div className="meta" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               <span>{active?.name ?? `S.R.C. ${year}`} · {tournamentLabel}</span>
               <RoleBadge role={user.roleTag} />
