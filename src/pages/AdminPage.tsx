@@ -945,7 +945,14 @@ function RosterAdmin() {
     }).map((a) => {
       const k = norm(a.name);
       const def: RoleTag = INACTIVE_ROSTER.has(k) ? "INACTIVE" : "ANGLER";
-      return { key: k, name: a.name, detail: "not registered", roleTag: overrides[k] ?? def, kind: "display" as const };
+      return {
+        key: k,
+        name: a.name,
+        detail: "not registered",
+        nickname: a.nickname,
+        roleTag: overrides[k] ?? def,
+        kind: "display" as const,
+      };
     }),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -979,6 +986,8 @@ function RosterAdmin() {
                       placeholder='"The Champ"'
                       onBlur={(e) => setNickname(row.key, e.target.value)}
                     />
+                  ) : row.nickname ? (
+                    <span>{row.nickname}</span>
                   ) : (
                     <span style={{ color: "var(--sand-faint)" }}>—</span>
                   )}

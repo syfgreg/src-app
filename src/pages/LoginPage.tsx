@@ -66,7 +66,7 @@ export function LoginPage() {
                 <input
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  placeholder='"The Champ"'
+                  placeholder="Type nickname here"
                   autoComplete="off"
                 />
               </label>

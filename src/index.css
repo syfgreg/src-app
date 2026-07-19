@@ -1194,7 +1194,10 @@ input:focus, select:focus, textarea:focus {
   font-size: 12.5px; color: var(--sand-dim); margin-top: 3px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.glory-fav-tally { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.glory-fav-tally { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.glory-fav-badges { display: flex; flex-direction: column; gap: 4px; }
+.glory-fav-badges .tag { width: 100%; justify-content: center; }
+.glory-fav-votes { font-weight: 700; text-align: center; }
 .glory-admin-thumb {
   width: 46px; height: 46px; object-fit: cover; border-radius: 8px; flex: 0 0 auto;
   border: 1px solid var(--line);

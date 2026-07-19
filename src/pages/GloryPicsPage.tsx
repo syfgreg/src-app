@@ -131,11 +131,13 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
                       </div>
                       {p.description && <div className="glory-fav-desc">{p.description}</div>}
                       <div className="glory-fav-tally">
-                        {isWinner && <span className="tag honor">🏆 Fav Winner</span>}
-                        {mine && <span className="tag approved">★ Your pick</span>}
+                        <div className="glory-fav-badges">
+                          {isWinner && <span className="tag honor">🏆 Winner</span>}
+                          {mine && <span className="tag approved">★ Your pick</span>}
+                        </div>
                         {/* Tallies stay hidden from participants until results are published. */}
                         {showResults && (
-                          <span style={{ marginLeft: "auto", fontWeight: 700 }}>
+                          <span className="glory-fav-votes">
                             {count} {count === 1 ? "vote" : "votes"}
                           </span>
                         )}
