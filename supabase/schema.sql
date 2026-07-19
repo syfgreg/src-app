@@ -223,6 +223,7 @@ create table if not exists public.smack_talk (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references public.profiles(id) on delete cascade,
   message    text not null,
+  replies    jsonb not null default '[]',
   created_at timestamptz not null default now()
 );
 create index if not exists smack_talk_created_idx on public.smack_talk (created_at);
@@ -361,13 +362,16 @@ create policy penalties_read  on public.penalties for select to authenticated us
 create policy penalties_write on public.penalties for all to authenticated
   using (public.is_moc()) with check (public.is_moc());
 
--- smack talk: everyone reads; insert your own; M.O.C. can delete any (moderation)
+-- smack talk: everyone reads; insert your own; any authed may update (replies); M.O.C. deletes (moderation)
 drop policy if exists smack_talk_read   on public.smack_talk;
 drop policy if exists smack_talk_insert on public.smack_talk;
+drop policy if exists smack_talk_update on public.smack_talk;
 drop policy if exists smack_talk_delete on public.smack_talk;
 create policy smack_talk_read   on public.smack_talk for select to authenticated using (true);
 create policy smack_talk_insert on public.smack_talk for insert to authenticated
   with check (user_id = auth.uid());
+create policy smack_talk_update on public.smack_talk for update to authenticated
+  using (true) with check (true);
 create policy smack_talk_delete on public.smack_talk for delete to authenticated
   using (public.is_moc());
 

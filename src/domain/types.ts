@@ -99,6 +99,7 @@ export interface SmackTalkPost {
   id: string;
   userId: string;
   message: string;
+  replies: GloryComment[];
   createdAt: number;
 }
 

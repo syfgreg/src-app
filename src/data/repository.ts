@@ -165,21 +165,41 @@ export async function postGlory(entry: {
   });
 }
 
+const SMACK_TALK_NOTIFICATIONS = [
+  (n: string) => `${n} laid down some smack talk!`,
+  (n: string) => `${n} just talked some serious trash!`,
+  (n: string) => `${n} is stirring the pot on the Smack Talk board!`,
+  (n: string) => `${n} came in hot with some smack talk!`,
+  (n: string) => `${n} is running their mouth again!`,
+  (n: string) => `${n} just fired a shot on the Smack Talk board!`,
+  (n: string) => `${n} can't help but talk trash!`,
+];
+
 /** Smack Talk board posts are open the same window as Glory Shot submissions. */
 export async function postSmackTalk(userId: string, message: string): Promise<void> {
   const text = message.trim().slice(0, 150);
   if (!text || !gloryShotsOpen()) return;
-  const p: SmackTalkPost = { id: uuid(), userId, message: text, createdAt: now() };
+  const p: SmackTalkPost = { id: uuid(), userId, message: text, replies: [], createdAt: now() };
   await db.smackTalk.put(p);
   await remoteWrite({
     table: "smack_talk",
     op: "upsert",
     key: p.id,
-    payload: { id: p.id, user_id: p.userId, message: p.message },
+    payload: { id: p.id, user_id: p.userId, message: p.message, replies: p.replies },
     at: p.createdAt,
   });
   const author = await db.users.get(userId);
-  await broadcast(`${author?.nickname ?? author?.name ?? "An angler"} laid down some smack talk!`);
+  const name = author?.nickname ?? author?.name ?? "An angler";
+  const line = SMACK_TALK_NOTIFICATIONS[Math.floor(Math.random() * SMACK_TALK_NOTIFICATIONS.length)];
+  await broadcast(line(name));
+}
+
+export async function addSmackTalkReply(postId: string, reply: GloryComment) {
+  const post = await db.smackTalk.get(postId);
+  if (!post) return;
+  const replies = [...post.replies, reply];
+  await db.smackTalk.update(postId, { replies });
+  await remoteWrite({ table: "smack_talk", op: "update", key: postId, payload: { replies }, at: now() });
 }
 
 /** M.O.C.: enter an existing glory shot into the tournament's Glory Shot Fav vote. */

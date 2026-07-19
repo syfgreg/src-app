@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { gloryShotsOpen, postSmackTalk } from "../data/repository";
+import { addSmackTalkReply, gloryShotsOpen, postSmackTalk } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
 import { Icon } from "../components/Icon";
@@ -11,12 +11,20 @@ export function SmackTalkPage({ onBack }: { onBack?: () => void }) {
   const posts = useLiveQuery(() => db.smackTalk.orderBy("createdAt").reverse().toArray(), [], []);
   const users = useLiveQuery(() => db.users.toArray(), [], []);
   const [draft, setDraft] = useState("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const open = gloryShotsOpen();
 
   const post = async () => {
     if (!user || !draft.trim()) return;
     await postSmackTalk(user.id, draft);
     setDraft("");
+  };
+
+  const reply = async (postId: string) => {
+    const text = replyDrafts[postId]?.trim();
+    if (!text || !user) return;
+    await addSmackTalkReply(postId, { userName: user.nickname ?? user.name, text, at: Date.now() });
+    setReplyDrafts((d) => ({ ...d, [postId]: "" }));
   };
 
   return (
@@ -69,6 +77,24 @@ export function SmackTalkPage({ onBack }: { onBack?: () => void }) {
                 </span>
               </div>
               <p style={{ fontSize: 14.5, marginTop: 6 }}>{p.message}</p>
+              {p.replies.map((r, i) => (
+                <div key={i} className="breakdown" style={{ marginTop: 6 }}>
+                  <strong>{r.userName}:</strong> {r.text}
+                </div>
+              ))}
+              {open && (
+                <div className="chat-input-row" style={{ marginTop: 10 }}>
+                  <input
+                    value={replyDrafts[p.id] ?? ""}
+                    onChange={(e) => setReplyDrafts((d) => ({ ...d, [p.id]: e.target.value }))}
+                    onKeyDown={(e) => e.key === "Enter" && reply(p.id)}
+                    placeholder="Reply…"
+                  />
+                  <button className="btn small" onClick={() => reply(p.id)} aria-label="Reply">
+                    <Icon name="send" size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           </article>
         );

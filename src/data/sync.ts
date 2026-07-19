@@ -147,6 +147,7 @@ const toSmackTalk = (r: any): SmackTalkPost => ({
   id: r.id,
   userId: r.user_id,
   message: r.message,
+  replies: Array.isArray(r.replies) ? r.replies : [],
   createdAt: ms(r.created_at),
 });
 
