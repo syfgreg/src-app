@@ -547,18 +547,30 @@ function PastTournaments() {
   const [openYear, setOpenYear] = useState<number | null>(null);
   const currentYear = settings?.tournamentYear ?? new Date().getFullYear();
 
+  // Fallback standings from career history (accolades.ts) for a year that has
+  // no catch-level rows in the database — true for every season before the
+  // app started tracking individual catches, which is all of them so far.
+  const careerStandingsFor = (year: number) =>
+    HALL_OF_FAME.flatMap((a) => {
+      const result = new Map(a.history).get(year);
+      return typeof result === "number" ? [{ userId: a.id, name: a.name, total: result, fullMonty: false }] : [];
+    }).sort((a, b) => b.total - a.total);
+
   // Full final standings for one past year, computed from the kept catches
   // (trash-3 cap, Full Monty, penalties, tie-breaks) — the official ordering.
+  // Falls back to career history when the database has no catches for that year.
   const standingsFor = (year: number) => {
     const penByUser = new Map<string, number>();
     for (const p of penalties) if (p.tournamentYear === year) penByUser.set(p.userId, (penByUser.get(p.userId) ?? 0) + p.points);
-    return computeStandings(approved.filter((c) => c.tournamentYear === year), penByUser).map((s) => ({
+    const fromCatches = computeStandings(approved.filter((c) => c.tournamentYear === year), penByUser).map((s) => ({
       ...s,
       name: users.find((u) => u.id === s.userId)?.name ?? "Unknown angler",
     }));
+    return fromCatches.length > 0 ? fromCatches : careerStandingsFor(year);
   };
 
-  // Champion (top total) per tournament year, from the kept catches.
+  // Champion (top total) per tournament year, from the kept catches, falling
+  // back to career history for years the database never tracked catches for.
   const championByYear = new Map<number, { name: string; pts: number }>();
   const totalsByYear = new Map<number, Map<string, number>>();
   for (const c of approved) {
@@ -573,6 +585,11 @@ function PastTournaments() {
       const u = users.find((x) => x.id === best!.id);
       championByYear.set(yr, { name: u?.name ?? "—", pts: best.pts });
     }
+  }
+  for (const t of tournaments) {
+    if (championByYear.has(t.year)) continue;
+    const top = careerStandingsFor(t.year)[0];
+    if (top) championByYear.set(t.year, { name: top.name, pts: top.total });
   }
 
   const sorted = [...tournaments].sort((a, b) => b.year - a.year || b.createdAt - a.createdAt);
@@ -606,7 +623,7 @@ function PastTournaments() {
                   {t.year}
                   {isActive ? " · active" : ""}
                   {t.participantIds.length ? ` · ${t.participantIds.length} anglers` : ""}
-                  {champ ? ` · 🏆 ${champ.name}` : " · no catches"}
+                  {champ ? ` · 🏆 ${champ.name} (${champ.pts.toLocaleString()} pts)` : " · no catches"}
                   {t.publishedAt
                     ? ` · published ${new Date(t.publishedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
                     : ""}
