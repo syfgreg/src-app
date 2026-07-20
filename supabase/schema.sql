@@ -304,15 +304,18 @@ create policy catches_update on public.catches for update to authenticated
 create policy catches_delete on public.catches for delete to authenticated
   using (public.is_moc());
 
--- glory pics: everyone reads; insert your own; any authed may update (comments)
+-- glory pics: everyone reads; insert your own; any authed may update (comments); M.O.C. deletes (moderation)
 drop policy if exists glory_read   on public.glory_pics;
 drop policy if exists glory_insert on public.glory_pics;
 drop policy if exists glory_update on public.glory_pics;
+drop policy if exists glory_delete on public.glory_pics;
 create policy glory_read   on public.glory_pics for select to authenticated using (true);
 create policy glory_insert on public.glory_pics for insert to authenticated
   with check (user_id = auth.uid());
 create policy glory_update on public.glory_pics for update to authenticated
   using (true) with check (true);
+create policy glory_delete on public.glory_pics for delete to authenticated
+  using (public.is_moc());
 
 -- glory fav history: everyone reads the permanent archive; only M.O.C. writes it
 drop policy if exists glory_history_read  on public.glory_fav_history;

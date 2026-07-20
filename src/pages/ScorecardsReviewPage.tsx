@@ -187,6 +187,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     const species = modalSpecies.trim();
     const len = floorToQuarter(parseFloat(modalLen));
     if (!species || !len || len <= 0) return;
+    if (!confirm("You are now updating the official fish record. Continue?")) return;
     const gearType: CatchEntry["gearType"] = modalLure ? "LURE" : "BAIT";
     const s = scoreCatch(species, len, gearType, records);
     await overrideCatch(rulingModal.id, {
@@ -391,10 +392,10 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                               <Icon name="check" size={15} /> Reinstate
                             </button>
                           )}
-                          <button className="btn small ghost" onClick={() => strike(c.id)}>
+                          <button className="btn small ghost" style={{ flex: 1 }} onClick={() => strike(c.id)}>
                             <Icon name="trash" size={15} /> Strike
                           </button>
-                          <button className="btn small" onClick={() => openRuling(c)}>
+                          <button className="btn small" style={{ flex: 1 }} onClick={() => openRuling(c)}>
                             Rescore
                           </button>
                         </div>

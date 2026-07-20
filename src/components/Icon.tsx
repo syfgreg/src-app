@@ -43,6 +43,7 @@ export type IconName =
   | "arrow-up"
   | "arrow-down"
   | "share"
+  | "edit"
   | "scribbles";
 
 const PATHS: Record<IconName, JSX.Element> = {
@@ -227,6 +228,12 @@ const PATHS: Record<IconName, JSX.Element> = {
       <path d="M15.5 3.5V7H19" />
       <path d="M6.5 11c1-1.3 2-1.3 3 0s2 1.3 3 0 2-1.3 3-1.3" />
       <path d="M6.5 15.3c1-1.3 2-1.3 3 0s2 1.3 3 0" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+      <path d="M13.5 7.5 16.5 10.5" />
     </>
   ),
 };

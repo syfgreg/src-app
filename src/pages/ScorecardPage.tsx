@@ -6,7 +6,8 @@ import { RoleBadge } from "../components/RoleBadge";
 import { Icon } from "../components/Icon";
 import { OceanReport } from "../components/OceanReport";
 import { computeStandings, anglerScore } from "../domain/standings";
-import { isTrash, scoreCalc } from "../domain/scoring";
+import { isTrash, scoreCalc, scoreCatch, floorToQuarter } from "../domain/scoring";
+import { overrideCatch } from "../data/repository";
 import type { CatchEntry } from "../domain/types";
 
 interface ScorecardPageProps {
@@ -26,6 +27,11 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
   // default — tap their headers to expand.
   const [cardOpen, setCardOpen] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
+  const [editModal, setEditModal] = useState<CatchEntry | null>(null);
+  const [editSpecies, setEditSpecies] = useState("");
+  const [editLen, setEditLen] = useState("");
+  const [editLure, setEditLure] = useState(false);
+  const records = useLiveQuery(() => db.records.toArray(), [], []);
 
   // Active tournament (the registry row for this year) supplies its name + roster.
   // If more than one shares the year (legacy), the most recently started wins.
@@ -121,6 +127,36 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
   // an angler's own card until the M.O.C. ends the tournament for real.
   const revealFullMonty = settings?.state !== "LIVE";
   const myTotal = myScore ? (revealFullMonty ? myScore.total : myScore.baseTotal) : 0;
+
+  // Self-correction window: an angler can fix their own honest mistakes (wrong
+  // species, missed the lure checkbox, etc.) up until the M.O.C. has actually
+  // signed off on the catch — after that, it's the M.O.C.'s call via the
+  // Scorecards review screen.
+  const canEdit = (c: CatchEntry) => settings?.state === "LIVE" && !c.verifiedBy && c.status !== "REJECTED";
+
+  const openEdit = (c: CatchEntry) => {
+    setEditModal(c);
+    setEditSpecies(c.species);
+    setEditLen(String(c.lengthInches ?? ""));
+    setEditLure(c.gearType === "LURE");
+  };
+  const submitEdit = async () => {
+    if (!editModal || !records) return;
+    const species = editSpecies.trim();
+    const len = floorToQuarter(parseFloat(editLen));
+    if (!species || !len || len <= 0) return;
+    const gearType: CatchEntry["gearType"] = editLure ? "LURE" : "BAIT";
+    const s = scoreCatch(species, len, gearType, records);
+    await overrideCatch(editModal.id, {
+      species,
+      lengthInches: len,
+      gearType,
+      pointValue: s.points,
+      isTrophy: s.isTrophy,
+      isRecordBreaker: s.isRecordBreaker,
+    });
+    setEditModal(null);
+  };
 
   if (!user) return null;
 
@@ -294,6 +330,16 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
                         `+${c.pointValue.toLocaleString()}`
                       )}
                     </div>
+                    {canEdit(c) && (
+                      <button
+                        className="btn small ghost"
+                        style={{ flex: "0 0 auto" }}
+                        aria-label="Edit catch"
+                        onClick={() => openEdit(c)}
+                      >
+                        <Icon name="edit" size={15} />
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -307,6 +353,46 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
             </div>
           ))}
       </div>
+
+      {editModal && (
+        <div className="lightbox" onClick={() => setEditModal(null)}>
+          <div className="card" style={{ maxWidth: 360, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Edit catch</h3>
+            <label className="field">
+              <span>Species</span>
+              <input value={editSpecies} onChange={(e) => setEditSpecies(e.target.value)} autoComplete="off" />
+            </label>
+            <label className="field">
+              <span>Length in inches</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.25"
+                value={editLen}
+                onChange={(e) => setEditLen(e.target.value)}
+                placeholder="17.25"
+              />
+            </label>
+            <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={editLure}
+                onChange={(e) => setEditLure(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              <span style={{ margin: 0 }}>Caught with an artificial lure</span>
+            </label>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button className="btn ghost" style={{ flex: 1 }} onClick={() => setEditModal(null)}>
+                Cancel
+              </button>
+              <button className="btn seafoam" style={{ flex: 1 }} onClick={submitEdit}>
+                <Icon name="check" size={16} /> Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

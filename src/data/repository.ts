@@ -243,6 +243,12 @@ export async function unnominateGlory(picId: string) {
   );
 }
 
+/** M.O.C.: remove a Glory Shot from the board entirely (moderation). */
+export async function deleteGlory(id: string) {
+  await db.gloryPics.delete(id);
+  await remoteWrite({ table: "glory_pics", op: "delete", key: id, payload: {}, at: now() });
+}
+
 /**
  * Cast (or toggle off) a participant's Glory Shot Fav vote. One vote per
  * participant per tournament, so voting for a shot removes the participant's

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { addComment, gloryShotsOpen, lockGloryVote, postGlory, voteGloryFav } from "../data/repository";
+import { addComment, deleteGlory, gloryShotsOpen, lockGloryVote, postGlory, voteGloryFav } from "../data/repository";
 import { useApp } from "../context/AppContext";
 import { Photo } from "../components/BlobImage";
 import { BackButton } from "../components/BackButton";
@@ -69,6 +69,10 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
     if (!text || !user) return;
     await addComment(picId, { userName: user.name, text, at: Date.now() });
     setCommentDrafts((d) => ({ ...d, [picId]: "" }));
+  };
+
+  const removeGlory = (picId: string) => {
+    if (confirm("Remove this Glory Shot from the board?")) deleteGlory(picId);
   };
 
   return (
@@ -218,6 +222,11 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
                 <span style={{ marginLeft: "auto", color: "var(--sand-faint)", fontSize: 12.5 }}>
                   {new Date(p.createdAt).toLocaleDateString()}
                 </span>
+                {user?.roleTag === "MOC" && (
+                  <button className="btn small ghost" onClick={() => removeGlory(p.id)} aria-label="Delete Glory Shot">
+                    <Icon name="trash" size={14} />
+                  </button>
+                )}
               </div>
               {p.description && <p style={{ fontSize: 14.5, marginTop: 6 }}>{p.description}</p>}
               {p.comments.map((c, i) => (
