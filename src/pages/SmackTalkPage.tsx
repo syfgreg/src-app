@@ -74,7 +74,7 @@ export function SmackTalkPage({ onBack }: { onBack?: () => void }) {
             <div className="body">
               <div className="headline">
                 <span className="species" style={{ fontSize: 15 }}>
-                  {author?.name ?? "Unknown angler"}
+                  {author?.nickname ?? author?.name ?? "Unknown angler"}
                 </span>
                 <span style={{ marginLeft: "auto", color: "var(--sand-faint)", fontSize: 12.5 }}>
                   {new Date(p.createdAt).toLocaleDateString()}
