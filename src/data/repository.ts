@@ -780,10 +780,11 @@ export async function startNewTournament(opts: {
     tournamentYear: opts.year,
     state: "SETUP",
     reviewedAnglers: [],
-    gloryFavState: "OFF",
+    gloryFavState: "OPEN",
     gloryFavLockedVoters: [],
   });
-  await broadcast(`A new tournament is on the board: ${opts.name.trim() || `Sea Robin Classic ${opts.year}`}.`);
+  const tournamentName = opts.name.trim() || `Sea Robin Classic ${opts.year}`;
+  await broadcast(`Fill your cups gents, the '${tournamentName}' is about to begin! Voting for glory is now open!!!`);
 }
 
 /**
