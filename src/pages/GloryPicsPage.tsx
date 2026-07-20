@@ -32,10 +32,10 @@ export function GloryPicsPage({ onBack }: { onBack?: () => void }) {
     .filter((p) => p.nominatedYear === year)
     .sort((a, b) => (b.votes?.length ?? 0) - (a.votes?.length ?? 0) || a.createdAt - b.createdAt);
   const roster = active?.participantIds ?? [];
-  // The M.O.C. runs the vote but can always cast one; otherwise it's the roster
-  // (or everyone, when no roster is set).
-  const eligible =
-    !!user && (user.roleTag === "MOC" || roster.length === 0 || roster.includes(user.id));
+  // Eligibility follows the tournament roster (or everyone, when no roster is
+  // set) — an M.O.C.-tagged account only votes if this tournament's roster
+  // actually includes them, same as anyone else.
+  const eligible = !!user && (roster.length === 0 || roster.includes(user.id));
   const locked = !!user && (settings?.gloryFavLockedVoters ?? []).includes(user.id);
   const canVote = votingOpen && eligible && !locked;
   const myVoteId = user ? nominees.find((p) => (p.votes ?? []).includes(user.id))?.id : undefined;

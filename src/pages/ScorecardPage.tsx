@@ -79,15 +79,13 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
     const byUser = new Map(standings.map((s) => [s.userId, s]));
     const roster = participantIds.length ? new Set(participantIds) : null;
     const onRoster = (u: (typeof allUsers)[number]) => !roster || roster.has(u.id);
-    // Preserve the official (tie-broken) ranking order. The M.O.C. fishes too and
-    // their score shows in rightful order (they're just not prize-eligible), so
-    // include the M.O.C. whenever they have catches — even though they're never
-    // on the participant roster.
+    // Preserve the official (tie-broken) ranking order. An M.O.C.-tagged account
+    // is only on the board if this tournament's roster actually includes them —
+    // there can be more than one M.O.C. account (a backup), and each one sits
+    // out just like anyone else unchecked from the roster.
     return standings
       .map((s) => ({ u: allUsers.find((u) => u.id === s.userId), s }))
-      .filter((r): r is { u: NonNullable<typeof r.u>; s: (typeof standings)[number] } =>
-        !!r.u && (r.u.roleTag === "MOC" || onRoster(r.u)),
-      )
+      .filter((r): r is { u: NonNullable<typeof r.u>; s: (typeof standings)[number] } => !!r.u && onRoster(r.u))
       .map((r) => ({
         u: r.u,
         pts: r.s.total,
@@ -98,8 +96,8 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
       .concat(
         // roster anglers with no catches yet, so the M.O.C. sees the full field
         allUsers
-          .filter((u) => u.roleTag !== "MOC" && onRoster(u) && !byUser.has(u.id))
-          .map((u) => ({ u, pts: 0, count: 0, fullMonty: false, isMoc: false })),
+          .filter((u) => onRoster(u) && !byUser.has(u.id))
+          .map((u) => ({ u, pts: 0, count: 0, fullMonty: false, isMoc: u.roleTag === "MOC" })),
       );
   })();
 

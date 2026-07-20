@@ -148,7 +148,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
   const onRoster = (u: (typeof users)[number]) => !roster || roster.has(u.id);
   const shinerRows = canValidate
     ? users
-        .filter((u) => u.roleTag !== "MOC" && onRoster(u) && !byAngler.has(u.id))
+        .filter((u) => onRoster(u) && !byAngler.has(u.id))
         .map((u) => ({ uid: u.id, u, cs: [] as CatchEntry[], total: 0, score: undefined, hasApproved: false, isShiner: true }))
     : [];
   rows.push(...shinerRows);

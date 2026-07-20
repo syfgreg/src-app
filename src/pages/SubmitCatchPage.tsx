@@ -18,11 +18,11 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
     const list = await db.tournaments.where("year").equals(year).toArray();
     return list.sort((a, b) => b.createdAt - a.createdAt)[0];
   }, [year]);
-  // If this tournament has a defined roster and the angler isn't on it, they sit out.
-  // The M.O.C. always fishes regardless of the roster (see ScorecardPage's board).
+  // If this tournament has a defined roster and the angler isn't on it, they sit
+  // out — the M.O.C. included, since there can be more than one M.O.C.-tagged
+  // account (a backup) and each tournament's roster is the actual source of truth.
   const roster = activeTournament?.participantIds ?? [];
-  const notParticipant =
-    !!user && user.roleTag !== "MOC" && roster.length > 0 && !roster.includes(user.id);
+  const notParticipant = !!user && roster.length > 0 && !roster.includes(user.id);
 
   // Sentinel for the "new species not on the list" path. Selecting it requires a
   // name + photo and routes the catch to the M.O.C. for final identification.

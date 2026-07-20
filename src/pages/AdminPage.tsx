@@ -399,9 +399,10 @@ function StartNewTournament() {
   let suggested = new Date().getFullYear();
   while (usedYears.has(suggested)) suggested += 1;
 
-  // M.O.C. is selectable here on request — he's independently exempted from every
-  // roster check elsewhere (submit, live board, Glory Fav voting), so this is purely
-  // about letting him show up on his own participant list; it changes nothing else.
+  // Any M.O.C.-tagged account (there can be more than one, e.g. a backup) is
+  // selectable here like any angler — checking or unchecking them actually
+  // controls whether they can submit catches, appear on the board, and vote in
+  // Glory Fav for this tournament, same as everyone else.
   const anglers = users.filter((u) => u.roleTag !== "INACTIVE");
   const [name, setName] = useState("");
   const [yearStr, setYearStr] = useState("");
