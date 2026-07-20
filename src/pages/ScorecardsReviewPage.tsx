@@ -65,7 +65,6 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     [],
   );
 
-  const [editLen, setEditLen] = useState<Record<string, string>>({});
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [penDesc, setPenDesc] = useState<Record<string, string>>({});
   const [penPts, setPenPts] = useState<Record<string, string>>({});
@@ -177,20 +176,6 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     await setReviewedAnglers([...next]);
   };
 
-  const rescore = async (c: CatchEntry) => {
-    const len = floorToQuarter(parseFloat(editLen[c.id] ?? ""));
-    if (!records || !len || len <= 0) return;
-    const s = scoreCatch(c.species, len, c.gearType, records);
-    await overrideCatch(c.id, {
-      lengthInches: len,
-      pointValue: s.points,
-      isTrophy: s.isTrophy,
-      isRecordBreaker: s.isRecordBreaker,
-      verifiedBy: "M.O.C. (official measurement)",
-    });
-    setEditLen((d) => ({ ...d, [c.id]: "" }));
-  };
-
   const openRuling = (c: CatchEntry) => {
     setRulingModal(c);
     setModalSpecies(c.species);
@@ -213,6 +198,10 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
       isRecordBreaker: s.isRecordBreaker,
       verifiedBy: "M.O.C. (official measurement)",
     });
+    await decideCatch(rulingModal.id, "APPROVED", "M.O.C. — official");
+    // Settle every competing record-breaker catch for this species at once —
+    // largest length keeps the record + bonus, everyone else loses it.
+    if (s.isRecordBreaker) await resolveRecordBreakers(species, rulingModal.tournamentYear);
     setRulingModal(null);
   };
 
@@ -405,15 +394,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                           <button className="btn small ghost" onClick={() => strike(c.id)}>
                             <Icon name="trash" size={15} /> Strike
                           </button>
-                          <input
-                            type="number"
-                            step="0.25"
-                            placeholder="Edit inches"
-                            value={editLen[c.id] ?? ""}
-                            onChange={(e) => setEditLen((d) => ({ ...d, [c.id]: e.target.value }))}
-                            style={{ width: 120, height: 44, flex: "0 0 auto" }}
-                          />
-                          <button className="btn small" onClick={() => rescore(c)}>
+                          <button className="btn small" onClick={() => openRuling(c)}>
                             Rescore
                           </button>
                         </div>
