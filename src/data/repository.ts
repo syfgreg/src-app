@@ -75,15 +75,19 @@ export async function decideCatch(id: string, status: "APPROVED" | "REJECTED", v
 
 export async function overrideCatch(
   id: string,
-  changes: Partial<Pick<CatchEntry, "lengthInches" | "pointValue" | "isTrophy" | "isRecordBreaker" | "verifiedBy">>,
+  changes: Partial<
+    Pick<CatchEntry, "species" | "lengthInches" | "pointValue" | "isTrophy" | "isRecordBreaker" | "verifiedBy" | "gearType">
+  >,
 ) {
   await db.catches.update(id, changes);
   const payload: Record<string, unknown> = {};
+  if (changes.species != null) payload.species = changes.species;
   if (changes.lengthInches != null) payload.length_inches = changes.lengthInches;
   if (changes.pointValue != null) payload.point_value = changes.pointValue;
   if (changes.isTrophy != null) payload.is_trophy = changes.isTrophy;
   if (changes.isRecordBreaker != null) payload.is_record_breaker = changes.isRecordBreaker;
   if (changes.verifiedBy != null) payload.verified_by = changes.verifiedBy;
+  if (changes.gearType != null) payload.gear_type = changes.gearType;
   await remoteWrite({ table: "catches", op: "update", key: id, payload, at: now() });
 }
 

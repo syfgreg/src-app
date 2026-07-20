@@ -69,6 +69,10 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [penDesc, setPenDesc] = useState<Record<string, string>>({});
   const [penPts, setPenPts] = useState<Record<string, string>>({});
+  const [rulingModal, setRulingModal] = useState<CatchEntry | null>(null);
+  const [modalSpecies, setModalSpecies] = useState("");
+  const [modalLen, setModalLen] = useState("");
+  const [modalLure, setModalLure] = useState(false);
   const focusedRef = useRef<HTMLDivElement | null>(null);
   const onFocusHandledRef = useRef(onFocusHandled);
   onFocusHandledRef.current = onFocusHandled;
@@ -186,6 +190,32 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     });
     setEditLen((d) => ({ ...d, [c.id]: "" }));
   };
+
+  const openRuling = (c: CatchEntry) => {
+    setRulingModal(c);
+    setModalSpecies(c.species);
+    setModalLen(String(c.lengthInches ?? ""));
+    setModalLure(c.gearType === "LURE");
+  };
+  const submitRuling = async () => {
+    if (!rulingModal || !records) return;
+    const species = modalSpecies.trim();
+    const len = floorToQuarter(parseFloat(modalLen));
+    if (!species || !len || len <= 0) return;
+    const gearType: CatchEntry["gearType"] = modalLure ? "LURE" : "BAIT";
+    const s = scoreCatch(species, len, gearType, records);
+    await overrideCatch(rulingModal.id, {
+      species,
+      lengthInches: len,
+      gearType,
+      pointValue: s.points,
+      isTrophy: s.isTrophy,
+      isRecordBreaker: s.isRecordBreaker,
+      verifiedBy: "M.O.C. (official measurement)",
+    });
+    setRulingModal(null);
+  };
+
   const accept = async (id: string) => {
     const c = catches.find((x) => x.id === id);
     await decideCatch(id, "APPROVED", "M.O.C. — official");
@@ -262,15 +292,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                 </button>
               </div>
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <input
-                  type="number"
-                  step="0.25"
-                  placeholder="Official inches"
-                  value={editLen[c.id] ?? ""}
-                  onChange={(e) => setEditLen((d) => ({ ...d, [c.id]: e.target.value }))}
-                  style={{ flex: 1, minWidth: 0 }}
-                />
-                <button className="btn small" style={{ flex: 1 }} onClick={() => rescore(c)}>
+                <button className="btn small" style={{ flex: 1 }} onClick={() => openRuling(c)}>
                   Rescore
                 </button>
               </div>
@@ -453,6 +475,50 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
           );
         })}
       </div>
+
+      {rulingModal && (
+        <div className="lightbox" onClick={() => setRulingModal(null)}>
+          <div className="card" style={{ maxWidth: 360, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>Official ruling</h3>
+            <label className="field">
+              <span>Species</span>
+              <input
+                value={modalSpecies}
+                onChange={(e) => setModalSpecies(e.target.value)}
+                placeholder="e.g. Northern Puffer"
+                autoComplete="off"
+              />
+            </label>
+            <label className="field">
+              <span>Official inches</span>
+              <input
+                type="number"
+                step="0.25"
+                value={modalLen}
+                onChange={(e) => setModalLen(e.target.value)}
+                placeholder="17.25"
+              />
+            </label>
+            <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={modalLure}
+                onChange={(e) => setModalLure(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              <span style={{ margin: 0 }}>Caught with an artificial lure</span>
+            </label>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button className="btn ghost" style={{ flex: 1 }} onClick={() => setRulingModal(null)}>
+                Cancel
+              </button>
+              <button className="btn seafoam" style={{ flex: 1 }} onClick={submitRuling}>
+                <Icon name="check" size={16} /> Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
