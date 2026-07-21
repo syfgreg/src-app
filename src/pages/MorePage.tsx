@@ -2,6 +2,7 @@ import { useApp } from "../context/AppContext";
 import { RoleBadge } from "../components/RoleBadge";
 import { Icon, type IconName } from "../components/Icon";
 import type { Screen } from "../App";
+import pkg from "../../package.json";
 
 export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
   const { user, logout } = useApp();
@@ -48,6 +49,9 @@ export function MorePage({ onNavigate }: { onNavigate: (s: Screen) => void }) {
       <button className="btn ghost" style={{ marginTop: 16 }} onClick={logout}>
         <Icon name="logout" size={18} /> Log out
       </button>
+      <p style={{ color: "var(--sand-faint)", fontSize: 11.5, textAlign: "center", marginTop: 12 }}>
+        v{pkg.version}
+      </p>
     </div>
   );
 }

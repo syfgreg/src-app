@@ -8,7 +8,6 @@ import {
   decideCatch,
   deleteCatch,
   deleteInvite,
-  deleteTournament,
   endTournament,
   nominateGlory,
   openGloryVoting,
@@ -638,18 +637,6 @@ function PastTournaments() {
               >
                 <Icon name="next" size={15} className={`collapse-chevron ${isOpen ? "open" : ""}`} />
               </button>
-              {!isActive && (
-                <button
-                  className="btn small ghost"
-                  title="Remove from history (catches are kept)"
-                  onClick={() => {
-                    if (confirm(`Remove "${t.name}" from the history list? The catches themselves are kept.`))
-                      deleteTournament(t.id);
-                  }}
-                >
-                  <Icon name="trash" size={15} />
-                </button>
-              )}
             </div>
             {isOpen && (
               <div style={{ padding: "4px 0 12px" }}>
