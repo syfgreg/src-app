@@ -67,16 +67,13 @@ export function RulesPage() {
       {messages.length === 0 && (
         <div className="card">
           <h3>Try asking</h3>
-          {STARTERS.map((s) => (
-            <button
-              key={s}
-              className="btn ghost small"
-              style={{ margin: "0 6px 8px 0" }}
-              onClick={() => ask(s)}
-            >
-              {s}
-            </button>
-          ))}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+            {STARTERS.map((s) => (
+              <button key={s} className="btn ghost small" onClick={() => ask(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

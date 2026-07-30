@@ -17,7 +17,6 @@
 -- stop — regardless of tournament year or whether it was ever published.
 delete from public.catches      where created_at < '2026-11-01';
 delete from public.penalties    where created_at < '2026-11-01';
-delete from public.glory_pics   where created_at < '2026-11-01';
 delete from public.notifications; -- always ephemeral, no cutoff needed
 -- The 1998-2025 archive is protected by year (its rows carry period-accurate
 -- created_at values, so a date cutoff alone can't tell it apart from test
@@ -36,6 +35,10 @@ update public.settings set
 where id = 1;
 
 -- ---------- NOT TOUCHED (intentionally) --------------------------------------
+--   public.glory_pics                              — Glory Shot submissions
+--     are real starting now (Jul 21, 2026): every shot posted from here on is
+--     an actual entry toward the November tournament's Glory Shot Fav, not
+--     test data. Never wiped by this script again.
 --   public.records                                 — the record book is a
 --     permanent, standing baseline, visible year over year. It only changes
 --     the way it's meant to: an official tournament participant breaking it
