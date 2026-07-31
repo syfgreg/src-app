@@ -408,7 +408,7 @@ function StartNewTournament() {
   const [picked, setPicked] = useState<Record<string, boolean> | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [showParticipants, setShowParticipants] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(true);
 
   // Preselect the whole roster once users load.
   const selected = picked ?? Object.fromEntries(anglers.map((u) => [u.id, true]));
@@ -486,7 +486,7 @@ function StartNewTournament() {
           onClick={() => setShowParticipants((o) => !o)}
           style={{ width: "100%", background: "none", border: 0, padding: "8px 0", cursor: "pointer", display: "flex", alignItems: "center" }}
         >
-          <span style={{ fontFamily: "var(--font-head)", fontSize: 12, fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--sand-dim)" }}>
+          <span style={{ fontFamily: "var(--font-head)", fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: "var(--sand)" }}>
             Participants ({chosenIds.length}/{anglers.length})
           </span>
           <Icon name="next" size={16} className={`collapse-chevron ${showParticipants ? "open" : ""}`} style={{ marginLeft: "auto", color: "var(--sand-faint)" }} />
