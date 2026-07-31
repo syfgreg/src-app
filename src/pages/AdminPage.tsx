@@ -201,7 +201,7 @@ function TournamentAdmin() {
       <h3>Tournament control</h3>
       <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginTop: 0, marginBottom: 10 }}>
         Runs the current tournament — <b style={{ color: "var(--sand)" }}>{active?.name ?? `S.R.C. ${year}`}</b>. To
-        begin a brand-new one, use “Start a new tournament” below.
+        begin a brand-new one, use “Start a new tournament” above.
       </p>
 
       <Lifecycle state={state} />
@@ -267,7 +267,7 @@ function TournamentAdmin() {
             onClick={() => {
               if (
                 confirm(
-                  "Undo and send this tournament back to Setup? Catches are kept, but anglers can’t log again until you open it a second time. Only use this to fix a mistake — not to start next year's tournament (use “Start a new tournament” below for that).",
+                  "Undo and send this tournament back to Setup? Catches are kept, but anglers can’t log again until you open it a second time. Only use this to fix a mistake — not to start next year's tournament (use “Start a new tournament” above for that).",
                 )
               )
                 run(() => updateSettings({ state: "SETUP", reviewedAnglers: [] }));
@@ -452,7 +452,7 @@ function StartNewTournament() {
         Only for beginning a <b style={{ color: "var(--sand)" }}>brand-new</b> tournament (a new year). It
         archives the current one to history and gives every participant a clean, empty scorecard. You
         don’t need this to run the current tournament — use <b style={{ color: "var(--sand)" }}>Tournament
-        control</b> above for that. After it’s created, open it from Tournament control to go live.
+        control</b> below for that. After it’s created, open it from Tournament control to go live.
       </p>
       <label className="field">
         <span>Tournament name</span>
@@ -529,7 +529,7 @@ function StartNewTournament() {
       </button>
       {done && (
         <p className="ok-note">
-          New tournament created (Setup). Open it from Tournament control above to go live.
+          New tournament created (Setup). Open it from Tournament control below to go live.
         </p>
       )}
     </div>
