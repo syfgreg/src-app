@@ -262,18 +262,18 @@ function TournamentAdmin() {
         {state !== "SETUP" && (
           <button
             className="btn ghost"
-            style={{ marginTop: 10 }}
+            style={{ marginTop: 18 }}
             disabled={busy}
             onClick={() => {
               if (
                 confirm(
-                  "Reopen the current tournament back to Setup? Catches are kept, but anglers can’t log again until you re-open it. Use this only to correct a mistake — not to start next year's tournament.",
+                  "Undo and send this tournament back to Setup? Catches are kept, but anglers can’t log again until you open it a second time. Only use this to fix a mistake — not to start next year's tournament (use “Start a new tournament” below for that).",
                 )
               )
                 run(() => updateSettings({ state: "SETUP", reviewedAnglers: [] }));
             }}
           >
-            Reopen for setup
+            <Icon name="back" size={14} /> Undo — fix a mistake
           </button>
         )}
       </div>
@@ -443,8 +443,11 @@ function StartNewTournament() {
   };
 
   return (
-    <div className="card">
-      <h3>Start a new tournament</h3>
+    <div className="card" style={{ borderTop: "2px solid var(--flare)" }}>
+      <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Icon name="plus" size={18} style={{ color: "var(--flare)" }} />
+        Start a new tournament
+      </h3>
       <p style={{ color: "var(--sand-dim)", fontSize: 13.5, marginTop: 0 }}>
         Only for beginning a <b style={{ color: "var(--sand)" }}>brand-new</b> tournament (a new year). It
         archives the current one to history and gives every participant a clean, empty scorecard. You
