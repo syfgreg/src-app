@@ -455,7 +455,7 @@ function StartNewTournament() {
         control</b> below for that. After it’s created, open it from Tournament control to go live.
       </p>
       <label className="field" style={{ marginTop: 14 }}>
-        <span style={{ fontWeight: 700 }}>Tournament name</span>
+        <span style={{ fontWeight: 700, color: "var(--sand)" }}>Tournament name</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -463,7 +463,7 @@ function StartNewTournament() {
         />
       </label>
       <label className="field">
-        <span>Year (the tournament's unique id)</span>
+        <span style={{ fontWeight: 700, color: "var(--sand)" }}>Year (the tournament's unique id)</span>
         <input
           type="number"
           value={yearStr}
