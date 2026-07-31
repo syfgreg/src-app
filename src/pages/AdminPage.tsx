@@ -214,7 +214,7 @@ function TournamentAdmin() {
       <div style={{ marginTop: 12 }}>
         {state === "SETUP" && (
           <button className="btn seafoam" disabled={busy} onClick={() => run(startTournament)}>
-            <Icon name="bolt" size={16} /> Re-Open last tournament
+            <Icon name="bolt" size={16} /> Start fishing
           </button>
         )}
 
