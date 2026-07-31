@@ -114,8 +114,8 @@ export function AdminPage({ onBack, focusAngler, onFocusHandled, initialSection 
 
       {section === "tournament" && (
         <>
-          <TournamentAdmin />
           <StartNewTournament />
+          <TournamentAdmin />
           <PastTournaments />
           <BackupNow />
         </>
