@@ -143,7 +143,7 @@ const NEXT_STEP: Record<string, string> = {
   SETUP: "Open the tournament so anglers can start logging catches.",
   LIVE: "Fishing is underway — end the tournament when the day is done.",
   ENDED: "Validate every scorecard in the Scorecards tab, then publish the results.",
-  PUBLISHED: "All done — results are official. To run another, start a new tournament below.",
+  PUBLISHED: "All done — results are official. To run another, start a new tournament above.",
 };
 
 function Lifecycle({ state }: { state: string }) {
@@ -454,8 +454,8 @@ function StartNewTournament() {
         don’t need this to run the current tournament — use <b style={{ color: "var(--sand)" }}>Tournament
         control</b> below for that. After it’s created, open it from Tournament control to go live.
       </p>
-      <label className="field">
-        <span>Tournament name</span>
+      <label className="field" style={{ marginTop: 14 }}>
+        <span style={{ fontWeight: 700 }}>Tournament name</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
