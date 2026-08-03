@@ -124,10 +124,7 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
               <div className="rank">{s.rank ?? "—"}</div>
               <div className="who">
                 <div className="name" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span>
-                    {s.u?.name ?? "Unknown angler"}
-                    {s.u?.nickname ? ` "${s.u.nickname}"` : ""}
-                  </span>
+                  <span>{s.u?.name ?? "Unknown angler"}</span>
                   {s.isMoc && <span className="tag moc">M.O.C.</span>}
                   {s.fullMonty && <span className="tag honor">Full Monty</span>}
                   {s.isShiner && <span className="tag danger">Shiner</span>}

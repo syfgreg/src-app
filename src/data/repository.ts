@@ -755,9 +755,12 @@ export async function startNewTournament(opts: {
     );
   }
 
-  // Archive the outgoing tournament if it isn't in the registry yet.
+  // Archive the outgoing tournament if it isn't in the registry yet — but not
+  // when the new tournament is reusing the same year (e.g. right after a
+  // database scrub reset the settings year with nothing registered for it
+  // yet), since that would just create a duplicate row for that year.
   const existing = (await db.tournaments.toArray()).find((t) => t.year === currentYear);
-  if (!existing) {
+  if (!existing && opts.year !== currentYear) {
     await upsertTournament({
       id: uuid(),
       name: `Sea Robin Classic ${currentYear}`,

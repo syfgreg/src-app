@@ -394,7 +394,10 @@ function StartNewTournament() {
   );
   const currentYear = settings?.tournamentYear ?? new Date().getFullYear();
 
-  const usedYears = new Set<number>([currentYear, ...tournaments.map((t) => t.year), ...catchYears]);
+  // The current settings year only counts as "used" once it actually has a
+  // registered tournament or a catch — a freshly-reset year (e.g. right after
+  // a database scrub) has neither yet, so it must stay pickable.
+  const usedYears = new Set<number>([...tournaments.map((t) => t.year), ...catchYears]);
   let suggested = new Date().getFullYear();
   while (usedYears.has(suggested)) suggested += 1;
 
