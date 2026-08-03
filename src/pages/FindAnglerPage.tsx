@@ -52,8 +52,12 @@ export function FindAnglerPage({ onBack }: { onBack: () => void }) {
             <div className="who">
               <div className="name">{a.name}</div>
               <div className="meta">
-                {badgeSummary(a) || `${a.years} tournaments · ${a.careerTotal.toLocaleString()} pts`}
+                {badgeSummary(a) || `${a.years} tournaments`}
               </div>
+            </div>
+            <div className="pts">
+              {a.careerTotal.toLocaleString()}
+              <small>points</small>
             </div>
             <div style={{ color: "var(--sand-faint)", display: "grid" }}>
               <Icon name="next" size={18} />
