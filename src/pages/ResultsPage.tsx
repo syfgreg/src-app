@@ -11,6 +11,10 @@ import { computeStandings } from "../domain/standings";
 export function ResultsPage({ onBack }: { onBack: () => void }) {
   const settings = useLiveQuery(() => db.settings.get(1), []);
   const year = settings?.tournamentYear ?? new Date().getFullYear();
+  const active = useLiveQuery(async () => {
+    const list = await db.tournaments.where("year").equals(year).toArray();
+    return list.sort((a, b) => b.createdAt - a.createdAt)[0];
+  }, [year]);
   const users = useLiveQuery(() => db.users.toArray(), [], []);
   const records = useLiveQuery(() => db.records.toArray(), [], []);
   const catches = useLiveQuery(
@@ -55,7 +59,7 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
   const penByUser = new Map<string, number>();
   for (const p of penalties) penByUser.set(p.userId, (penByUser.get(p.userId) ?? 0) + p.points);
   let prizeRank = 0;
-  const standings = computeStandings(catches, penByUser).map((s) => {
+  const scored = computeStandings(catches, penByUser).map((s) => {
     const u = users.find((x) => x.id === s.userId);
     const isMoc = u?.roleTag === "MOC";
     return {
@@ -65,9 +69,30 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
       count: s.approvedCount,
       fullMonty: s.fullMonty,
       isMoc,
+      isShiner: false,
       rank: isMoc ? null : ++prizeRank,
     };
   });
+
+  // Every roster angler who never scored (no catches at all) still gets a
+  // card — 0 points, tagged Shiner — so the final results show the whole field.
+  const participantIds = active?.participantIds ?? [];
+  const roster = participantIds.length ? new Set(participantIds) : null;
+  const onRoster = (u: (typeof users)[number]) => !roster || roster.has(u.id);
+  const scoredIds = new Set(scored.map((s) => s.uid));
+  const shinerRows = users
+    .filter((u) => onRoster(u) && !scoredIds.has(u.id))
+    .map((u) => ({
+      uid: u.id,
+      u,
+      pts: 0,
+      count: 0,
+      fullMonty: false,
+      isMoc: u.roleTag === "MOC",
+      isShiner: true,
+      rank: u.roleTag === "MOC" ? null : ++prizeRank,
+    }));
+  const standings = [...scored, ...shinerRows];
 
   const recordsSet = records.filter((r) => r.year === year);
 
@@ -105,6 +130,7 @@ export function ResultsPage({ onBack }: { onBack: () => void }) {
                   </span>
                   {s.isMoc && <span className="tag moc">M.O.C.</span>}
                   {s.fullMonty && <span className="tag honor">Full Monty</span>}
+                  {s.isShiner && <span className="tag danger">Shiner</span>}
                 </div>
                 <div className="meta">
                   {s.count} verified {s.count === 1 ? "catch" : "catches"}
