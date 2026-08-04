@@ -65,7 +65,7 @@ export function CommandApp() {
     <div className="cc-shell">
       <nav className="cc-nav">
         <div className="cc-brand">
-          <img src="/logo.png" alt="" className="cc-brand-logo" />
+          <img src="/command-emblem.png" alt="" className="cc-brand-logo" />
           <div>
             <div className="cc-brand-title">Command Center</div>
             <div className="cc-brand-sub">Sea Robin Classic</div>

@@ -20,7 +20,7 @@ export function CommandLoginPage() {
   return (
     <div className="cc-login-shell">
       <form className="card cc-login-card" onSubmit={submit}>
-        <img src="/logo.png" alt="" className="cc-login-badge" />
+        <img src="/command-emblem.png" alt="" className="cc-login-badge" />
         <h1 className="cc-login-title">M.O.C. Command Center</h1>
         <p className="cc-login-sub">Sea Robin Classic — full tournament control.</p>
 
