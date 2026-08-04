@@ -19,7 +19,7 @@ export function RecordsPage({ onBack }: { onBack: () => void }) {
       <div className="card stagger">
         {records
           .slice()
-          .sort((a, b) => b.lengthInches - a.lengthInches)
+          .sort((a, b) => a.species.localeCompare(b.species))
           .map((r) => {
             const runnerUp = RUNNER_UP_RECORDS.find((x) => x.species === r.species);
             const open = r.lengthInches === 0;

@@ -24,6 +24,33 @@ delete from public.notifications; -- always ephemeral, no cutoff needed
 -- published or not.
 delete from public.tournaments where year >= 2026 and created_at < '2026-11-01';
 
+-- ---------- RESTORED: record book back to its real, permanent baseline ------
+-- Until MOCK_CUTOFF, any record-breaker set through the app is necessarily
+-- test/mock play (the real November tournament hasn't happened yet) — so
+-- every species is force-set back to the official baseline (2026 Rules &
+-- Regulations, Section 5-H) on every run. After the cutoff, stop running this
+-- script — real record-breaks from here on must never be touched by it again.
+update public.records set holder = 'N/A — the Coveted remains uncaught', year = null, length_inches = 0 where species = 'Sea Robin';
+update public.records set holder = 'Peter Dzien', year = 2008, length_inches = 26 where species = 'Striped Bass';
+update public.records set holder = 'Jeff Kern', year = 2020, length_inches = 20 where species = 'Flounder';
+update public.records set holder = 'Dave Gonzalez', year = 2013, length_inches = 25.5 where species = 'Red Drum';
+update public.records set holder = 'Sean Sullivan', year = 2018, length_inches = 11 where species = 'Black Drum';
+update public.records set holder = 'Mike Cooper', year = 2007, length_inches = 11 where species = 'Sheepshead';
+update public.records set holder = 'Eric Keresty', year = 2004, length_inches = 17.5 where species = 'Bluefish';
+update public.records set holder = 'Mike Cooper', year = 2003, length_inches = 16 where species = 'Sea Trout';
+update public.records set holder = 'Jerry Egan', year = 2022, length_inches = 14.25 where species = 'Kingfish';
+update public.records set holder = 'Will Koth', year = 2020, length_inches = 7 where species = 'Croaker';
+update public.records set holder = 'Dave Gonzalez', year = 2024, length_inches = 10 where species = 'Spot';
+update public.records set holder = 'Mike Cooper', year = 2008, length_inches = 12 where species = 'Spotted Hake';
+update public.records set holder = 'Phill Hall', year = 2020, length_inches = 8 where species = 'Silver Perch';
+update public.records set holder = 'Fred Bubeck', year = 2019, length_inches = 10 where species = 'Puffer Fish';
+update public.records set holder = 'Sean Sullivan', year = 2007, length_inches = 26 where species = 'Eel';
+update public.records set holder = 'Dave Gonzalez', year = 2022, length_inches = 8.5 where species = 'Cusk Eel';
+update public.records set holder = 'Greg Keresty', year = 2012, length_inches = 29 where species = 'Skate';
+update public.records set holder = 'Dave Gonzalez', year = 2006, length_inches = 39 where species = 'Shark';
+update public.records set holder = 'Greg Hudson (Butterfly)', year = 2023, length_inches = 19.5 where species = 'Ray';
+update public.records set holder = 'Pete Dzien', year = 2013, length_inches = 21.5 where species = 'Stargazer';
+
 -- ---------- RESET: settings back to a clean, unstarted tournament cycle -----
 update public.settings set
   tournament_year   = extract(year from now())::int,
@@ -39,10 +66,6 @@ where id = 1;
 --     are real starting now (Jul 21, 2026): every shot posted from here on is
 --     an actual entry toward the November tournament's Glory Shot Fav, not
 --     test data. Never wiped by this script again.
---   public.records                                 — the record book is a
---     permanent, standing baseline, visible year over year. It only changes
---     the way it's meant to: an official tournament participant breaking it
---     for real (via the app's own record-breaker flow), never via a reset.
 --   public.profiles, public.invites, auth.users  — real registered anglers keep
 --     their accounts; nobody has to re-register.
 --   public.newsletters                            — includes the protected
