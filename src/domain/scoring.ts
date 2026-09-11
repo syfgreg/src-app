@@ -225,9 +225,13 @@ export function scoreCatch(
     );
   }
 
-  // Record Breaker — beats the standing record for its species
+  // Record Breaker — meets or beats the standing record for its species. Per
+  // the Record Breaker Clause, an exact tie still earns the bonus — and using
+  // >= (not >) also keeps a catch that already IS the record from losing its
+  // own bonus the next time it's rescored, since by then the record in the
+  // book is that same catch's own length.
   const record = records.find((r) => r.species.toLowerCase() === species.trim().toLowerCase());
-  const isRecordBreaker = !!record && lengthInches > record.lengthInches;
+  const isRecordBreaker = !!record && lengthInches >= record.lengthInches;
   if (isRecordBreaker && record) {
     const bonus = lengthInches * SCORING.recordBreakerBonusPPI;
     points += bonus;
