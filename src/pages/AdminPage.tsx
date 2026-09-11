@@ -9,6 +9,7 @@ import {
   deleteCatch,
   deleteInvite,
   endTournament,
+  ensureRecordExists,
   nominateGlory,
   openGloryVoting,
   listBackups,
@@ -707,7 +708,11 @@ function CatchModeration() {
     const c = await db.catches.get(id);
     const len = floorToQuarter(parseFloat(editLength[id] ?? ""));
     if (!c || !settings || !records || !len || len <= 0) return;
-    const rescored = scoreCatch(c.species, len, c.gearType, records, c.categoryOverride);
+    // A species new to the record book (the "Other" flow) has no baseline to
+    // beat yet — give it one so it can earn the Record Breaker bonus too.
+    await ensureRecordExists(c.species);
+    const freshRecords = await db.records.toArray();
+    const rescored = scoreCatch(c.species, len, c.gearType, freshRecords, c.categoryOverride);
     await overrideCatch(id, {
       lengthInches: len,
       pointValue: rescored.points,

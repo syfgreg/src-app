@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { decideCatch, deleteCatch, overrideCatch, resolveRecordBreakers } from "../data/repository";
+import { decideCatch, deleteCatch, ensureRecordExists, overrideCatch, resolveRecordBreakers } from "../data/repository";
 import { scoreCatch, floorToQuarter, categoryOf, resolveCategory, CATEGORY_LABEL, type Category } from "../domain/scoring";
 import { Icon } from "../components/Icon";
 import type { CatchEntry } from "../domain/types";
@@ -46,7 +46,11 @@ export function CommandCatchReview() {
     if (!records || !len || len <= 0) return;
     // Only stored as an override when it differs from the species' own default tier.
     const categoryOverride = editCategory !== categoryOf(c.species) ? editCategory : undefined;
-    const s = scoreCatch(c.species, len, c.gearType, records, categoryOverride);
+    // A species new to the record book (the "Other" flow) has no baseline to
+    // beat yet — give it one so it can earn the Record Breaker bonus too.
+    await ensureRecordExists(c.species);
+    const freshRecords = await db.records.toArray();
+    const s = scoreCatch(c.species, len, c.gearType, freshRecords, categoryOverride);
     await overrideCatch(c.id, {
       lengthInches: len,
       categoryOverride,

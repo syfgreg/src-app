@@ -122,6 +122,28 @@ export async function updateRecord(
   });
 }
 
+/**
+ * A species newly ruled on by the M.O.C. (the "Other" / new-species flow) has
+ * no record book entry yet, so it can never be flagged a Record Breaker no
+ * matter how it's scored. Give it the same open (0", uncaught) baseline the
+ * official species start with, so the very first catch of it can earn the
+ * bonus like any other record-eligible fish. No-op if a record already exists
+ * (case-insensitively — records are keyed by exact species text).
+ */
+export async function ensureRecordExists(species: string): Promise<void> {
+  const trimmed = species.trim();
+  const existing = (await db.records.toArray()).find((r) => r.species.toLowerCase() === trimmed.toLowerCase());
+  if (existing) return;
+  await db.records.put({ species: trimmed, holder: "N/A — no record yet", year: null, lengthInches: 0 });
+  await remoteWrite({
+    table: "records",
+    op: "upsert",
+    key: trimmed,
+    payload: { species: trimmed, holder: "N/A — no record yet", year: null, length_inches: 0 },
+    at: now(),
+  });
+}
+
 export async function broadcast(message: string, title?: string) {
   const id = uuid();
   await db.notifications.add({ id, message, at: now(), read: false });

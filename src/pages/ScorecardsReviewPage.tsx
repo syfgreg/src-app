@@ -6,6 +6,7 @@ import {
   decideCatch,
   deleteCatch,
   deletePenalty,
+  ensureRecordExists,
   overrideCatch,
   resolveRecordBreakers,
   setReviewedAnglers,
@@ -193,7 +194,11 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     const gearType: CatchEntry["gearType"] = modalLure ? "LURE" : "BAIT";
     // Only stored as an override when it differs from the species' own default tier.
     const categoryOverride = modalCategory !== categoryOf(species) ? modalCategory : undefined;
-    const s = scoreCatch(species, len, gearType, records, categoryOverride);
+    // A species new to the record book (the "Other" flow) has no baseline to
+    // beat yet — give it one so it can earn the Record Breaker bonus too.
+    await ensureRecordExists(species);
+    const freshRecords = await db.records.toArray();
+    const s = scoreCatch(species, len, gearType, freshRecords, categoryOverride);
     await overrideCatch(rulingModal.id, {
       species,
       lengthInches: len,
