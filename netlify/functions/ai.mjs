@@ -3,9 +3,12 @@
 // Two actions: "verify" (vision catch check) and "rules" (grounded chat).
 
 const MODEL = "gemini-flash-lite-latest";
-// Disable Gemini 2.5's default "thinking" — unneeded for species ID / rules Q&A,
-// and it conserves the free-tier token budget over a weekend of catches.
-const NO_THINKING = { thinkingConfig: { thinkingBudget: 0 } };
+// NOTE: `gemini-flash-lite-latest` is a rolling alias — it has moved to model
+// generations that reject `thinkingConfig.thinkingBudget: 0` as an invalid
+// argument (confirmed against the live API), so every call silently 400'd.
+// Leave thinking config unset until Google's alias settles on something that
+// supports disabling it again.
+const NO_THINKING = {};
 const ENDPOINT = (key) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
 
