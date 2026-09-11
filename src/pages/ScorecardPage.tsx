@@ -302,7 +302,9 @@ export function ScorecardPage({ onViewResults, onViewAngler, onGoVote }: Scoreca
             <div>
               {mine.map((c) => {
                 const trashUncounted =
-                  c.status === "APPROVED" && isTrash(c.species) && !myScore?.scoredTrashIds.includes(c.id);
+                  c.status === "APPROVED" &&
+                  isTrash(c.species, c.categoryOverride) &&
+                  !myScore?.scoredTrashIds.includes(c.id);
                 return (
                   <div className={`sc-row ${c.status !== "APPROVED" ? "dim" : ""}`} key={c.id}>
                     <div className="sc-species">

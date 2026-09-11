@@ -10,7 +10,7 @@ import {
   resolveRecordBreakers,
   setReviewedAnglers,
 } from "../data/repository";
-import { scoreCatch, SCORING, isTrash, scoreCalc, floorToQuarter } from "../domain/scoring";
+import { scoreCatch, SCORING, isTrash, scoreCalc, floorToQuarter, categoryOf, resolveCategory, CATEGORY_LABEL, type Category } from "../domain/scoring";
 import { computeStandings } from "../domain/standings";
 import { useApp } from "../context/AppContext";
 import { BackButton } from "../components/BackButton";
@@ -72,6 +72,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
   const [modalSpecies, setModalSpecies] = useState("");
   const [modalLen, setModalLen] = useState("");
   const [modalLure, setModalLure] = useState(false);
+  const [modalCategory, setModalCategory] = useState<Category>("GAME_2");
   const focusedRef = useRef<HTMLDivElement | null>(null);
   const onFocusHandledRef = useRef(onFocusHandled);
   onFocusHandledRef.current = onFocusHandled;
@@ -181,6 +182,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     setModalSpecies(c.species);
     setModalLen(String(c.lengthInches ?? ""));
     setModalLure(c.gearType === "LURE");
+    setModalCategory(resolveCategory(c.species, c.categoryOverride));
   };
   const submitRuling = async () => {
     if (!rulingModal || !records) return;
@@ -189,11 +191,14 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     if (!species || !len || len <= 0) return;
     if (!confirm("You are now updating the official fish record. Continue?")) return;
     const gearType: CatchEntry["gearType"] = modalLure ? "LURE" : "BAIT";
-    const s = scoreCatch(species, len, gearType, records);
+    // Only stored as an override when it differs from the species' own default tier.
+    const categoryOverride = modalCategory !== categoryOf(species) ? modalCategory : undefined;
+    const s = scoreCatch(species, len, gearType, records, categoryOverride);
     await overrideCatch(rulingModal.id, {
       species,
       lengthInches: len,
       gearType,
+      categoryOverride,
       pointValue: s.points,
       isTrophy: s.isTrophy,
       isRecordBreaker: s.isRecordBreaker,
@@ -269,6 +274,21 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                   {c.witnessId && (
                     <div className="ruling-reason">
                       Witness: {users.find((x) => x.id === c.witnessId)?.name ?? "Unknown"}
+                    </div>
+                  )}
+                  {(c.aiNotes || c.aiConfidence != null) && (
+                    <div className="ruling-reason" style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                      <Icon name="sparkle" size={13} style={{ flexShrink: 0, marginTop: 2, color: "var(--flare)" }} />
+                      <span>
+                        {c.speciesDetected && (
+                          <>
+                            AI judge saw <b>{c.speciesDetected}</b>
+                            {c.aiConfidence != null ? ` (${Math.round(c.aiConfidence * 100)}% confidence)` : ""}
+                            {c.aiNotes ? " — " : ""}
+                          </>
+                        )}
+                        {c.aiNotes}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -354,7 +374,9 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                 <>
                   {cs.map((c) => {
                     const trashUncounted =
-                      c.status === "APPROVED" && isTrash(c.species) && !score?.scoredTrashIds.includes(c.id);
+                      c.status === "APPROVED" &&
+                      isTrash(c.species, c.categoryOverride) &&
+                      !score?.scoredTrashIds.includes(c.id);
                     return (
                       <div
                         className={`sc-row ${c.status !== "APPROVED" ? "dim" : ""}`}
@@ -489,6 +511,17 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                 style={{ width: "auto" }}
               />
               <span style={{ margin: 0 }}>Caught with an artificial lure</span>
+            </label>
+            <label className="field">
+              <span>Scoring tier</span>
+              <select value={modalCategory} onChange={(e) => setModalCategory(e.target.value as Category)}>
+                {(Object.keys(CATEGORY_LABEL) as Category[]).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {CATEGORY_LABEL[cat]}
+                    {cat === categoryOf(modalSpecies.trim()) ? " (default)" : ""}
+                  </option>
+                ))}
+              </select>
             </label>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button className="btn ghost" style={{ flex: 1 }} onClick={() => setRulingModal(null)}>

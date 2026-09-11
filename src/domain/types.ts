@@ -58,6 +58,8 @@ export interface CatchEntry {
   isSkate: boolean;
   isTrophy: boolean;
   isRecordBreaker: boolean;
+  /** M.O.C. override of the species' default scoring tier (e.g. reclassify to Trash Fish). */
+  categoryOverride?: "SEA_ROBIN" | "GAME_1" | "GAME_2" | "TRASH";
   pointValue: number;
   /** remote URL once uploaded to Supabase Storage */
   photoUrl?: string;

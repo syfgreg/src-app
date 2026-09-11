@@ -36,6 +36,7 @@ const catchPayload = (c: CatchEntry) => ({
   is_skate: c.isSkate,
   is_trophy: c.isTrophy,
   is_record_breaker: c.isRecordBreaker,
+  category_override: c.categoryOverride ?? null,
   point_value: c.pointValue,
   lat: c.lat ?? null,
   lng: c.lng ?? null,
@@ -76,7 +77,17 @@ export async function decideCatch(id: string, status: "APPROVED" | "REJECTED", v
 export async function overrideCatch(
   id: string,
   changes: Partial<
-    Pick<CatchEntry, "species" | "lengthInches" | "pointValue" | "isTrophy" | "isRecordBreaker" | "verifiedBy" | "gearType">
+    Pick<
+      CatchEntry,
+      | "species"
+      | "lengthInches"
+      | "pointValue"
+      | "isTrophy"
+      | "isRecordBreaker"
+      | "categoryOverride"
+      | "verifiedBy"
+      | "gearType"
+    >
   >,
 ) {
   await db.catches.update(id, changes);
@@ -86,6 +97,7 @@ export async function overrideCatch(
   if (changes.pointValue != null) payload.point_value = changes.pointValue;
   if (changes.isTrophy != null) payload.is_trophy = changes.isTrophy;
   if (changes.isRecordBreaker != null) payload.is_record_breaker = changes.isRecordBreaker;
+  if ("categoryOverride" in changes) payload.category_override = changes.categoryOverride ?? null;
   if (changes.verifiedBy != null) payload.verified_by = changes.verifiedBy;
   if (changes.gearType != null) payload.gear_type = changes.gearType;
   await remoteWrite({ table: "catches", op: "update", key: id, payload, at: now() });
@@ -567,7 +579,13 @@ export async function resolveRecordBreakers(species: string, tournamentYear: num
   const recordsWithoutSpecies = records.filter((r) => r.species.toLowerCase() !== species.toLowerCase());
   for (const loser of group) {
     if (loser.id === winner.id) continue;
-    const rescored = scoreCatch(loser.species, loser.lengthInches, loser.gearType, recordsWithoutSpecies);
+    const rescored = scoreCatch(
+      loser.species,
+      loser.lengthInches,
+      loser.gearType,
+      recordsWithoutSpecies,
+      loser.categoryOverride,
+    );
     await overrideCatch(loser.id, {
       pointValue: rescored.points,
       isTrophy: rescored.isTrophy,

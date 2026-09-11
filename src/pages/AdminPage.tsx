@@ -707,7 +707,7 @@ function CatchModeration() {
     const c = await db.catches.get(id);
     const len = floorToQuarter(parseFloat(editLength[id] ?? ""));
     if (!c || !settings || !records || !len || len <= 0) return;
-    const rescored = scoreCatch(c.species, len, c.gearType, records);
+    const rescored = scoreCatch(c.species, len, c.gearType, records, c.categoryOverride);
     await overrideCatch(id, {
       lengthInches: len,
       pointValue: rescored.points,

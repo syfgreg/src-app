@@ -102,6 +102,11 @@ export function categoryOf(species: string): Category {
   return CATEGORY_BY_NAME.get(species.trim().toLowerCase()) ?? "GAME_2";
 }
 
+/** The category actually used to score a catch: the M.O.C.'s override, if one was ruled, else the species' default. */
+export function resolveCategory(species: string, categoryOverride?: Category): Category {
+  return categoryOverride ?? categoryOf(species);
+}
+
 export function speciesConfig(species: string): SpeciesConfig | undefined {
   return SPECIES_2026.find((s) => s.name.toLowerCase() === species.trim().toLowerCase());
 }
@@ -109,11 +114,11 @@ export function speciesConfig(species: string): SpeciesConfig | undefined {
 export function isGameCategory(c: Category): boolean {
   return c === "GAME_1" || c === "GAME_2";
 }
-export function isGamefish(species: string): boolean {
-  return isGameCategory(categoryOf(species));
+export function isGamefish(species: string, categoryOverride?: Category): boolean {
+  return isGameCategory(resolveCategory(species, categoryOverride));
 }
-export function isTrash(species: string): boolean {
-  return categoryOf(species) === "TRASH";
+export function isTrash(species: string, categoryOverride?: Category): boolean {
+  return resolveCategory(species, categoryOverride) === "TRASH";
 }
 
 export const CATEGORY_LABEL: Record<Category, string> = {
@@ -170,8 +175,9 @@ export function scoreCalc(c: {
   gearType: "BAIT" | "LURE";
   isTrophy?: boolean;
   isRecordBreaker?: boolean;
+  categoryOverride?: Category;
 }): string {
-  const cat = categoryOf(c.species);
+  const cat = resolveCategory(c.species, c.categoryOverride);
   const ppi = basePPI(cat, c.lengthInches);
   const parts = [`${c.lengthInches}" × ${ppi} PPI = ${Math.round(c.lengthInches * ppi).toLocaleString()}`];
   if (c.gearType === "LURE" && isGameCategory(cat) && c.lengthInches >= SCORING.lureMinInches)
@@ -188,8 +194,9 @@ export function scoreCatch(
   lengthInches: number,
   gearType: "BAIT" | "LURE",
   records: RecordEntry[],
+  categoryOverride?: Category,
 ): ScoreResult {
-  const category = categoryOf(species);
+  const category = resolveCategory(species, categoryOverride);
   const isGame = isGameCategory(category);
   const ppi = basePPI(category, lengthInches);
   const breakdown: string[] = [];

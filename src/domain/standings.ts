@@ -1,5 +1,5 @@
 import type { CatchEntry } from "./types";
-import { categoryOf, isGameCategory, SCORING } from "./scoring";
+import { resolveCategory, isGameCategory, SCORING } from "./scoring";
 
 /**
  * Tournament-level scoring aggregation — the single source of truth for an
@@ -51,7 +51,7 @@ function scoreAngler(userId: string, catches: CatchEntry[]): AnglerScore {
   let largestFishLen = 0;
 
   for (const c of approved) {
-    const cat = categoryOf(c.species);
+    const cat = resolveCategory(c.species, c.categoryOverride);
     highestFishPts = Math.max(highestFishPts, c.pointValue);
     largestFishLen = Math.max(largestFishLen, c.lengthInches);
     if (cat === "TRASH") {
@@ -131,7 +131,7 @@ export function computeStandings(
   let largestGame: { uid: string; len: number } | null = null;
   let largestTrash: { uid: string; len: number } | null = null;
   for (const c of approved) {
-    const cat = categoryOf(c.species);
+    const cat = resolveCategory(c.species, c.categoryOverride);
     if (isGameCategory(cat)) {
       if (!largestGame || c.lengthInches > largestGame.len) largestGame = { uid: c.userId, len: c.lengthInches };
     } else if (cat === "TRASH") {

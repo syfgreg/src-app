@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import { decideCatch, deleteCatch, overrideCatch, resolveRecordBreakers } from "../data/repository";
-import { scoreCatch, floorToQuarter } from "../domain/scoring";
+import { scoreCatch, floorToQuarter, categoryOf, resolveCategory, CATEGORY_LABEL, type Category } from "../domain/scoring";
 import { Icon } from "../components/Icon";
 import type { CatchEntry } from "../domain/types";
 
@@ -20,6 +20,7 @@ export function CommandCatchReview() {
   const [filter, setFilter] = useState<Filter>("ALL");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLen, setEditLen] = useState("");
+  const [editCategory, setEditCategory] = useState<Category>("GAME_2");
 
   const rows = catches
     .filter((c) => filter === "ALL" || c.status === filter)
@@ -38,13 +39,17 @@ export function CommandCatchReview() {
   const startRescore = (c: CatchEntry) => {
     setEditingId(c.id);
     setEditLen(String(c.lengthInches));
+    setEditCategory(resolveCategory(c.species, c.categoryOverride));
   };
   const submitRescore = async (c: CatchEntry) => {
     const len = floorToQuarter(parseFloat(editLen));
     if (!records || !len || len <= 0) return;
-    const s = scoreCatch(c.species, len, c.gearType, records);
+    // Only stored as an override when it differs from the species' own default tier.
+    const categoryOverride = editCategory !== categoryOf(c.species) ? editCategory : undefined;
+    const s = scoreCatch(c.species, len, c.gearType, records, categoryOverride);
     await overrideCatch(c.id, {
       lengthInches: len,
+      categoryOverride,
       pointValue: s.points,
       isTrophy: s.isTrophy,
       isRecordBreaker: s.isRecordBreaker,
@@ -108,6 +113,18 @@ export function CommandCatchReview() {
                     onChange={(e) => setEditLen(e.target.value)}
                     style={{ width: 70 }}
                   />
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value as Category)}
+                    style={{ width: "auto" }}
+                  >
+                    {(Object.keys(CATEGORY_LABEL) as Category[]).map((cat) => (
+                      <option key={cat} value={cat}>
+                        {CATEGORY_LABEL[cat]}
+                        {cat === categoryOf(c.species) ? " (default)" : ""}
+                      </option>
+                    ))}
+                  </select>
                   <button className="btn small seafoam" onClick={() => submitRescore(c)}>
                     Save
                   </button>

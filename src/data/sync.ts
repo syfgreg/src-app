@@ -63,6 +63,7 @@ const toCatch = (r: any): CatchEntry => ({
   isSkate: r.is_skate,
   isTrophy: r.is_trophy,
   isRecordBreaker: r.is_record_breaker,
+  categoryOverride: r.category_override ?? undefined,
   pointValue: Number(r.point_value),
   photoUrl: r.photo_url ?? undefined,
   lat: r.lat ?? undefined,

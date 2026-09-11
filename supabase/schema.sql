@@ -159,6 +159,7 @@ create table if not exists public.catches (
   is_skate          boolean not null default false,
   is_trophy         boolean not null default false,
   is_record_breaker boolean not null default false,
+  category_override text check (category_override in ('SEA_ROBIN','GAME_1','GAME_2','TRASH')),
   point_value       numeric not null,
   photo_url         text,
   lat               numeric,
