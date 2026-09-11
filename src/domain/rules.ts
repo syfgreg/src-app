@@ -14,7 +14,7 @@ export const RULE_SECTIONS: RuleSection[] = [
   {
     id: "summary",
     title: "Tournament Summary",
-    keywords: ["summary", "overview", "what is", "invite", "camping", "weekend", "friday", "saturday", "moc", "keresty"],
+    keywords: ["summary", "overview", "invite", "camping", "weekend", "moc", "keresty"],
     text: `The Sea Robin Classic Surf Fishing Tournament (The Tourney, The Sea Robin, SRC) is an invite-only camping and fishing event hosted annually by Mr. E.W. Keresty, the M.O.C. (Master of Ceremonies). It runs two nights (Friday and Saturday) and one complete day (Saturday), consisting of surf fishing plus other competitive events as determined by the M.O.C. By accepting the invitation, all Participants agree to abide by all rules and regulations.`,
   },
   {

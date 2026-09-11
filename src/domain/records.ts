@@ -29,6 +29,8 @@ export const OFFICIAL_RECORDS: RecordEntry[] = [
   { species: "Shark", holder: "Dave Gonzalez", year: 2006, lengthInches: 39 },
   { species: "Ray", holder: "Greg Hudson (Butterfly)", year: 2023, lengthInches: 19.5 },
   { species: "Stargazer", holder: "Pete Dzien", year: 2013, lengthInches: 21.5 },
+  { species: "Toadfish", holder: "N/A — no record yet", year: null, lengthInches: 0 },
+  { species: "Oyster Cracker", holder: "N/A — no record yet", year: null, lengthInches: 0 },
 ];
 
 /** Second-place slots, for the full record book display. */

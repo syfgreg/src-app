@@ -50,6 +50,8 @@ update public.records set holder = 'Greg Keresty', year = 2012, length_inches = 
 update public.records set holder = 'Dave Gonzalez', year = 2006, length_inches = 39 where species = 'Shark';
 update public.records set holder = 'Greg Hudson (Butterfly)', year = 2023, length_inches = 19.5 where species = 'Ray';
 update public.records set holder = 'Pete Dzien', year = 2013, length_inches = 21.5 where species = 'Stargazer';
+update public.records set holder = 'N/A — no record yet', year = null, length_inches = 0 where species = 'Toadfish';
+update public.records set holder = 'N/A — no record yet', year = null, length_inches = 0 where species = 'Oyster Cracker';
 
 -- ---------- RESET: settings back to a clean, unstarted tournament cycle -----
 update public.settings set
