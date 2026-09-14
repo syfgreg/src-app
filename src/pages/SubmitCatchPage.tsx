@@ -111,7 +111,7 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
       //    stays off the board until they give final sign-off.
       const status = isOther ? ("PENDING" as const) : ("APPROVED" as const);
 
-      await submitCatch({
+      const { synced } = await submitCatch({
         userId: user.id,
         tournamentYear: settings.tournamentYear,
         species: finalSpecies,
@@ -132,9 +132,12 @@ export function SubmitCatchPage({ onDone }: { onDone: () => void }) {
         createdAt: Date.now(),
       });
 
-      // Only announce verified catches — and never with points (reveal at the end).
-      // A pending new species stays quiet until the M.O.C. verifies it.
-      if (status === "APPROVED") {
+      // Only announce verified catches that actually reached everyone else —
+      // never with points (reveal at the end), and never for a write that's
+      // only queued on this device (a spotty connection shouldn't announce a
+      // catch nobody else can actually see yet). A pending new species stays
+      // quiet until the M.O.C. verifies it.
+      if (status === "APPROVED" && synced) {
         await broadcast(`${user.nickname ?? user.name} just landed a ${finalSpecies}!`);
       }
       setPhase("");

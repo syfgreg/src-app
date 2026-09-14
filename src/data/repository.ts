@@ -47,10 +47,16 @@ const catchPayload = (c: CatchEntry) => ({
   witness_id: c.witnessId ?? null,
 });
 
-export async function submitCatch(entry: Omit<CatchEntry, "id">): Promise<CatchEntry> {
+/**
+ * `synced` tells the caller whether the write actually reached everyone else
+ * yet (vs. only queued on this device) — used to decide whether it's safe to
+ * broadcast the catch, so a spotty connection can't announce a catch nobody
+ * else can actually see.
+ */
+export async function submitCatch(entry: Omit<CatchEntry, "id">): Promise<{ entry: CatchEntry; synced: boolean }> {
   const full: CatchEntry = { ...entry, id: uuid() };
   await db.catches.put(full); // keeps the blob locally for instant/offline display
-  await remoteWrite({
+  const synced = await remoteWrite({
     table: "catches",
     op: "upsert",
     key: full.id,
@@ -60,7 +66,7 @@ export async function submitCatch(entry: Omit<CatchEntry, "id">): Promise<CatchE
     photoField: "photo_url",
     at: full.createdAt,
   });
-  return full;
+  return { entry: full, synced };
 }
 
 export async function decideCatch(id: string, status: "APPROVED" | "REJECTED", verifiedBy: string) {
@@ -191,7 +197,7 @@ export async function postGlory(entry: {
     comments: g.comments,
   };
   if (entry.nominatedYear != null) payload.nominated_year = entry.nominatedYear;
-  await remoteWrite({
+  const synced = await remoteWrite({
     table: "glory_pics",
     op: "upsert",
     key: g.id,
@@ -201,6 +207,10 @@ export async function postGlory(entry: {
     photoField: "photo_url",
     at: g.createdAt,
   });
+  // Only announce once it's actually reached everyone else — a queued-offline
+  // write is only visible on this device until it syncs, so announcing it now
+  // would promise something nobody else can see yet.
+  if (!synced) return;
   const author = await db.users.get(entry.userId);
   const name = author?.nickname ?? author?.name ?? "An angler";
   await broadcast(`${name} just submitted a Glory Shot! Go check it out!`);

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
 import {
+  broadcast,
   createPenalty,
   decideCatch,
   deleteCatch,
@@ -209,7 +210,14 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
       isRecordBreaker: s.isRecordBreaker,
       verifiedBy: "M.O.C. (official measurement)",
     });
+    // A new species stayed quiet at submission time (the M.O.C. hadn't ruled
+    // on it yet) — announce it now that it's officially on the board.
+    const wasPending = rulingModal.status === "PENDING";
     await decideCatch(rulingModal.id, "APPROVED", "M.O.C. — official");
+    if (wasPending) {
+      const angler = users.find((u) => u.id === rulingModal.userId);
+      await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${species}!`);
+    }
     // Settle every competing record-breaker catch for this species at once —
     // largest length keeps the record + bonus, everyone else loses it.
     if (s.isRecordBreaker) await resolveRecordBreakers(species, rulingModal.tournamentYear);
@@ -218,8 +226,13 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
 
   const accept = async (id: string) => {
     const c = catches.find((x) => x.id === id);
+    const wasPending = c?.status === "PENDING";
     await decideCatch(id, "APPROVED", "M.O.C. — official");
     if (!c) return;
+    if (wasPending) {
+      const angler = users.find((u) => u.id === c.userId);
+      await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
+    }
     // Settle every competing record-breaker catch for this species at once —
     // largest length keeps the record + bonus (earliest catch breaks a tie),
     // every other catch loses the bonus and is marked verified too.

@@ -685,9 +685,15 @@ function CatchModeration() {
   const decide = async (id: string, status: "APPROVED" | "REJECTED") => {
     const c = await db.catches.get(id);
     if (!c) return;
+    const wasPending = c.status === "PENDING";
     await decideCatch(id, status, "M.O.C.");
     const angler = users.find((u) => u.id === c.userId);
     if (status === "APPROVED") {
+      // A new species stayed quiet at submission time (the M.O.C. hadn't
+      // ruled on it yet) — announce it now that it's officially on the board.
+      if (wasPending) {
+        await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
+      }
       // A verified record breaker rewrites the record book
       if (c.isRecordBreaker && angler) {
         const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());

@@ -295,18 +295,26 @@ async function pushItem(item: OutboxItem) {
  * tournaments/invites tables so that, if the additive migration hasn't been run
  * yet, a failing write is dropped rather than jamming the shared outbox (whose
  * flush stops on the first error) and blocking catch/settings sync.
+ *
+ * Returns whether the write actually reached Supabase (or, in local-only mode,
+ * whether Dexie — the only source of truth there — already has it). `false`
+ * means it's sitting in this device's own outbox and nobody else can see it
+ * yet: callers that announce a submission to everyone else should check this
+ * first, so they don't broadcast something that hasn't actually landed.
  */
-export async function remoteWrite(item: OutboxItem, opts: { queueOnFail?: boolean } = {}) {
-  if (!cloudEnabled || !supabase) return; // local-only mode: Dexie is the truth
+export async function remoteWrite(item: OutboxItem, opts: { queueOnFail?: boolean } = {}): Promise<boolean> {
+  if (!cloudEnabled || !supabase) return true; // local-only mode: Dexie is the truth
   const queueOnFail = opts.queueOnFail ?? true;
   if (!navigator.onLine) {
     if (queueOnFail) await db.outbox.add(item);
-    return;
+    return false;
   }
   try {
     await pushItem(item);
+    return true;
   } catch {
     if (queueOnFail) await db.outbox.add(item);
+    return false;
   }
 }
 

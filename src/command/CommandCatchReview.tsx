@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../data/db";
-import { decideCatch, deleteCatch, ensureRecordExists, overrideCatch, resolveRecordBreakers } from "../data/repository";
+import {
+  broadcast,
+  decideCatch,
+  deleteCatch,
+  ensureRecordExists,
+  overrideCatch,
+  resolveRecordBreakers,
+} from "../data/repository";
 import { scoreCatch, floorToQuarter, categoryOf, resolveCategory, CATEGORY_LABEL, type Category } from "../domain/scoring";
 import { Icon } from "../components/Icon";
 import type { CatchEntry } from "../domain/types";
@@ -29,7 +36,14 @@ export function CommandCatchReview() {
   const nameFor = (uid: string) => users.find((u) => u.id === uid)?.name ?? "Unknown angler";
 
   const accept = async (c: CatchEntry) => {
+    // A new species stayed quiet at submission time (the M.O.C. hadn't ruled
+    // on it yet) — announce it now that it's officially on the board.
+    const wasPending = c.status === "PENDING";
     await decideCatch(c.id, "APPROVED", "M.O.C. — official");
+    if (wasPending) {
+      const angler = users.find((u) => u.id === c.userId);
+      await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
+    }
     if (c.isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
   };
   const reject = (c: CatchEntry) => decideCatch(c.id, "REJECTED", "M.O.C.");
