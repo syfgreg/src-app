@@ -686,6 +686,18 @@ function CatchModeration() {
     const c = await db.catches.get(id);
     if (!c) return;
     const wasPending = c.status === "PENDING";
+    let isRecordBreaker = c.isRecordBreaker;
+    if (status === "APPROVED" && wasPending) {
+      // This is the M.O.C.'s first official sign-off on a new species — the
+      // angler's own provisional score at submission time never could have
+      // earned the Record Breaker bonus, since the species had no record book
+      // entry yet. Score it for real now, same as Rescore does.
+      await ensureRecordExists(c.species);
+      const freshRecords = await db.records.toArray();
+      const s = scoreCatch(c.species, c.lengthInches, c.gearType, freshRecords, c.categoryOverride);
+      isRecordBreaker = s.isRecordBreaker;
+      await overrideCatch(id, { pointValue: s.points, isTrophy: s.isTrophy, isRecordBreaker: s.isRecordBreaker });
+    }
     await decideCatch(id, status, "M.O.C.");
     const angler = users.find((u) => u.id === c.userId);
     if (status === "APPROVED") {
@@ -695,8 +707,8 @@ function CatchModeration() {
         await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
       }
       // A verified record breaker rewrites the record book
-      if (c.isRecordBreaker && angler) {
-        const rec = records.find((r) => r.species.toLowerCase() === c.species.toLowerCase());
+      if (isRecordBreaker && angler) {
+        const rec = (await db.records.toArray()).find((r) => r.species.toLowerCase() === c.species.toLowerCase());
         if (rec) {
           await updateRecord(rec.species, {
             holder: angler.name,

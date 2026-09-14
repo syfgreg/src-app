@@ -226,9 +226,21 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
 
   const accept = async (id: string) => {
     const c = catches.find((x) => x.id === id);
-    const wasPending = c?.status === "PENDING";
-    await decideCatch(id, "APPROVED", "M.O.C. — official");
     if (!c) return;
+    const wasPending = c.status === "PENDING";
+    let isRecordBreaker = c.isRecordBreaker;
+    if (wasPending) {
+      // This is the M.O.C.'s first official sign-off on a new species — the
+      // angler's own provisional score at submission time never could have
+      // earned the Record Breaker bonus, since the species had no record book
+      // entry yet. Score it for real now, same as Rescore does.
+      await ensureRecordExists(c.species);
+      const freshRecords = await db.records.toArray();
+      const s = scoreCatch(c.species, c.lengthInches, c.gearType, freshRecords, c.categoryOverride);
+      isRecordBreaker = s.isRecordBreaker;
+      await overrideCatch(id, { pointValue: s.points, isTrophy: s.isTrophy, isRecordBreaker: s.isRecordBreaker });
+    }
+    await decideCatch(id, "APPROVED", "M.O.C. — official");
     if (wasPending) {
       const angler = users.find((u) => u.id === c.userId);
       await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
@@ -236,7 +248,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
     // Settle every competing record-breaker catch for this species at once —
     // largest length keeps the record + bonus (earliest catch breaks a tie),
     // every other catch loses the bonus and is marked verified too.
-    if (c.isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
+    if (isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
   };
   const decline = (id: string) => decideCatch(id, "REJECTED", "M.O.C.");
   const reinstate = (id: string) => decideCatch(id, "APPROVED", "M.O.C.");

@@ -17,7 +17,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      // "prompt" (not autoUpdate): a new deploy shouldn't silently reload a
+      // long-open tab out from under someone mid-ruling — UpdateBanner.tsx
+      // (via virtual:pwa-register/react) surfaces it and waits for a tap.
+      registerType: "prompt",
+      // The app registers the service worker itself (UpdateBanner.tsx) so it
+      // can show that prompt instead of the plugin's silent auto-injected one.
+      injectRegister: false,
       includeAssets: ["logo.png", "apple-touch-icon.png"],
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],

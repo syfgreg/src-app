@@ -36,15 +36,27 @@ export function CommandCatchReview() {
   const nameFor = (uid: string) => users.find((u) => u.id === uid)?.name ?? "Unknown angler";
 
   const accept = async (c: CatchEntry) => {
+    const wasPending = c.status === "PENDING";
+    let isRecordBreaker = c.isRecordBreaker;
+    if (wasPending) {
+      // This is the M.O.C.'s first official sign-off on a new species — the
+      // angler's own provisional score at submission time never could have
+      // earned the Record Breaker bonus, since the species had no record book
+      // entry yet. Score it for real now, same as Rescore does.
+      await ensureRecordExists(c.species);
+      const freshRecords = await db.records.toArray();
+      const s = scoreCatch(c.species, c.lengthInches, c.gearType, freshRecords, c.categoryOverride);
+      isRecordBreaker = s.isRecordBreaker;
+      await overrideCatch(c.id, { pointValue: s.points, isTrophy: s.isTrophy, isRecordBreaker: s.isRecordBreaker });
+    }
     // A new species stayed quiet at submission time (the M.O.C. hadn't ruled
     // on it yet) — announce it now that it's officially on the board.
-    const wasPending = c.status === "PENDING";
     await decideCatch(c.id, "APPROVED", "M.O.C. — official");
     if (wasPending) {
       const angler = users.find((u) => u.id === c.userId);
       await broadcast(`${angler?.nickname ?? angler?.name ?? "An angler"} just landed a ${c.species}!`);
     }
-    if (c.isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
+    if (isRecordBreaker) await resolveRecordBreakers(c.species, c.tournamentYear);
   };
   const reject = (c: CatchEntry) => decideCatch(c.id, "REJECTED", "M.O.C.");
   const strike = (c: CatchEntry) => {

@@ -14,6 +14,7 @@ import { needsRuling } from "../pages/ScorecardsReviewPage";
 import { computeStandings } from "../domain/standings";
 import { HALL_OF_FAME } from "../domain/accolades";
 import { Icon, type IconName } from "../components/Icon";
+import { UpdateBanner } from "../components/UpdateBanner";
 
 type Nav =
   | "dashboard"
@@ -96,6 +97,7 @@ export function CommandApp() {
         </button>
       </nav>
       <main className="cc-content">
+        <UpdateBanner />
         {nav === "dashboard" && <Dashboard onNavigate={setNav} />}
         {nav === "metrics" && <Metrics />}
         {nav === "history" && <CommandAnglerHistory />}

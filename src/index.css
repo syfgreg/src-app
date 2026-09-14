@@ -1124,6 +1124,27 @@ input:focus, select:focus, textarea:focus {
   .install-tip .install-close:hover { color: var(--sand); background: var(--ink-3); }
 }
 
+/* ---------- new-version banner ---------- */
+.update-banner {
+  display: flex; align-items: center; gap: 12px;
+  margin: 8px 16px 0;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, var(--ink-3) 0%, var(--ink-2) 60%);
+  border: 1px solid color-mix(in srgb, var(--seafoam) 34%, var(--line));
+  border-radius: 14px;
+  box-shadow: var(--shadow-1);
+  animation: enter-up 0.5s var(--ease-out) both;
+}
+.update-banner .update-ico {
+  flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--seafoam) 16%, transparent);
+  color: var(--seafoam);
+}
+.update-banner .update-body { flex: 1; min-width: 0; }
+.update-banner .update-title { font-family: var(--font-head); font-weight: 700; font-size: 14.5px; }
+.update-banner .update-steps { color: var(--sand-dim); font-size: 13px; line-height: 1.4; margin-top: 2px; }
+
 /* Tournament lifecycle stepper (M.O.C. panel) — Setup → Live → Ended → Published */
 .lifecycle { display: grid; grid-template-columns: repeat(4, 1fr); margin: 4px 0 12px; }
 .lc-step { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }

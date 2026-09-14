@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "./context/AppContext";
 import { Header } from "./components/Header";
 import { InstallPrompt } from "./components/InstallPrompt";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { TabBar, type Tab } from "./components/TabBar";
 import { LoginPage } from "./pages/LoginPage";
 import { UpdatePasswordPage } from "./pages/UpdatePasswordPage";
@@ -76,6 +77,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header />
+      <UpdateBanner />
       <InstallPrompt />
       {screen === "leaderboard" && (
         <ScorecardPage
