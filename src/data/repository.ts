@@ -723,29 +723,30 @@ export async function createPenalty(entry: {
     createdAt: now(),
   };
   await db.penalties.put(penalty);
-  await remoteWrite(
-    {
-      table: "penalties",
-      op: "upsert",
-      key: penalty.id,
-      payload: {
-        id: penalty.id,
-        user_id: penalty.userId,
-        tournament_year: penalty.tournamentYear,
-        description: penalty.description,
-        points: penalty.points,
-        created_at: new Date(penalty.createdAt).toISOString(),
-      },
-      at: penalty.createdAt,
+  // Queue-and-retry on failure (the default) — a M.O.C. penalty assessment is
+  // exactly the kind of write that must not silently vanish if the request
+  // fails in the moment (a backgrounded tab, one bad packet); it should sync
+  // once connectivity is confirmed, same as catches and Glory Shots already do.
+  await remoteWrite({
+    table: "penalties",
+    op: "upsert",
+    key: penalty.id,
+    payload: {
+      id: penalty.id,
+      user_id: penalty.userId,
+      tournament_year: penalty.tournamentYear,
+      description: penalty.description,
+      points: penalty.points,
+      created_at: new Date(penalty.createdAt).toISOString(),
     },
-    { queueOnFail: false },
-  );
+    at: penalty.createdAt,
+  });
   return penalty;
 }
 
 export async function deletePenalty(id: string) {
   await db.penalties.delete(id);
-  await remoteWrite({ table: "penalties", op: "delete", key: id, payload: {}, at: now() }, { queueOnFail: false });
+  await remoteWrite({ table: "penalties", op: "delete", key: id, payload: {}, at: now() });
 }
 
 // ---------- tournament registry / history -----------------------------------
