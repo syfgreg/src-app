@@ -75,6 +75,7 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
   const [modalLen, setModalLen] = useState("");
   const [modalLure, setModalLure] = useState(false);
   const [modalCategory, setModalCategory] = useState<Category>("GAME_2");
+  const [lightbox, setLightbox] = useState<{ url?: string; blob?: Blob } | null>(null);
   const focusedRef = useRef<HTMLDivElement | null>(null);
   const onFocusHandledRef = useRef(onFocusHandled);
   onFocusHandledRef.current = onFocusHandled;
@@ -292,7 +293,13 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
           {pending.map(({ c, u }) => (
             <div className="ruling-row" key={c.id}>
               <div style={{ display: "flex", gap: 10 }}>
-                <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+                <div
+                  role="button"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setLightbox({ url: c.photoUrl, blob: c.photo })}
+                >
+                  <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600 }}>
                     {c.species} · {c.lengthInches}"
@@ -413,7 +420,13 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
                         key={c.id}
                         style={{ flexWrap: "wrap" }}
                       >
-                        <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+                        <div
+                          role="button"
+                          style={{ cursor: "pointer" }}
+                          onClick={() => setLightbox({ url: c.photoUrl, blob: c.photo })}
+                        >
+                          <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+                        </div>
                         <div className="sc-species">
                           {c.species}
                           <small>
@@ -562,6 +575,12 @@ export function ScorecardsReviewPage({ onBack, focusUserId, onFocusHandled, embe
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <Photo url={lightbox.url} blob={lightbox.blob} alt="Catch photo" />
         </div>
       )}
     </div>

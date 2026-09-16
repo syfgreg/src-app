@@ -11,6 +11,7 @@ import {
 } from "../data/repository";
 import { scoreCatch, floorToQuarter, categoryOf, resolveCategory, CATEGORY_LABEL, type Category } from "../domain/scoring";
 import { Icon } from "../components/Icon";
+import { Photo } from "../components/BlobImage";
 import type { CatchEntry } from "../domain/types";
 
 type Filter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
@@ -28,6 +29,7 @@ export function CommandCatchReview() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLen, setEditLen] = useState("");
   const [editCategory, setEditCategory] = useState<Category>("GAME_2");
+  const [lightbox, setLightbox] = useState<{ url?: string; blob?: Blob } | null>(null);
 
   const rows = catches
     .filter((c) => filter === "ALL" || c.status === filter)
@@ -109,6 +111,7 @@ export function CommandCatchReview() {
 
       <div className="cc-catch-table">
         <div className="cc-catch-row cc-catch-head">
+          <div>Photo</div>
           <div>Angler</div>
           <div>Species</div>
           <div>Inches</div>
@@ -121,6 +124,13 @@ export function CommandCatchReview() {
 
         {rows.map((c) => (
           <div className="cc-catch-row" key={c.id}>
+            <div
+              role="button"
+              style={{ cursor: c.photoUrl || c.photo ? "pointer" : "default" }}
+              onClick={() => (c.photoUrl || c.photo) && setLightbox({ url: c.photoUrl, blob: c.photo })}
+            >
+              <Photo url={c.photoUrl} blob={c.photo} alt={c.species} className="glory-admin-thumb" />
+            </div>
             <div>{nameFor(c.userId)}</div>
             <div>{c.species}</div>
             <div>{c.lengthInches}&quot;</div>
@@ -189,6 +199,12 @@ export function CommandCatchReview() {
           </p>
         )}
       </div>
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <Photo url={lightbox.url} blob={lightbox.blob} alt="Catch photo" />
+        </div>
+      )}
     </div>
   );
 }
