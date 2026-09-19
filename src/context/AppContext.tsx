@@ -173,7 +173,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.resetPasswordForEmail(e, {
       redirectTo: window.location.origin,
     });
-    return error ? error.message : "Check your email for a link to reset your password.";
+    return error ? error.message || "Couldn't send the reset email right now. Try again in a bit." : "Check your email for a link to reset your password.";
   }, []);
 
   const updatePassword = useCallback(async (password: string) => {
