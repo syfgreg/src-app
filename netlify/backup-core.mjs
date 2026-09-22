@@ -17,6 +17,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { computeStandings } from "../src/domain/standings";
 import { HALL_OF_FAME, shinerSeasons, presidencyYears } from "../src/domain/accolades";
+import { resolveCategory, CATEGORY_LABEL } from "../src/domain/scoring";
 
 const TABLES = [
   "profiles", "settings", "records", "catches", "glory_pics",
@@ -96,10 +97,10 @@ export function buildStandingsCsv(data) {
 
 export function buildCatchesCsv(data) {
   const nameById = new Map((data.profiles ?? []).map((p) => [p.id, p.name]));
-  const header = ["angler", "species", "length_in", "gear", "points", "status", "trophy", "record", "tournament_year", "created_at"];
+  const header = ["angler", "species", "tier", "length_in", "gear", "points", "status", "trophy", "record", "tournament_year", "created_at"];
   const rows = (data.catches ?? []).map((r) => [
     nameById.get(r.user_id) ?? r.user_id,
-    r.species, r.length_inches, r.gear_type, r.point_value, r.status,
+    r.species, CATEGORY_LABEL[resolveCategory(r.species, r.category_override)], r.length_inches, r.gear_type, r.point_value, r.status,
     r.is_trophy ? "yes" : "", r.is_record_breaker ? "yes" : "", r.tournament_year, r.created_at,
   ]);
   return toCsv([header, ...rows]);
@@ -173,12 +174,13 @@ export function scorecardRows(data) {
     ["SCORECARD — CATCH DETAIL"],
     ["Every logged catch · species, size, gear, points, status"],
     [],
-    ["Angler", "Species", "Length (in)", "Gear", "Points", "Status", "Trophy", "Record", "Tournament", "Logged"],
+    ["Angler", "Species", "Tier", "Length (in)", "Gear", "Points", "Status", "Trophy", "Record", "Tournament", "Logged"],
   ];
   cs.forEach((r) => {
     rows.push([
       nameById.get(r.user_id) ?? r.user_id,
       r.species,
+      CATEGORY_LABEL[resolveCategory(r.species, r.category_override)],
       Number(r.length_inches),
       r.gear_type === "LURE" ? "Artificial lure" : "Bait",
       Number(r.point_value),
