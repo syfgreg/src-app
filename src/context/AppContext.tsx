@@ -32,10 +32,17 @@ export const useApp = () => useContext(AppContext);
 
 const LOCAL_SESSION_KEY = "src-session-user-id";
 
+// A reset link arrives as `#access_token=…&type=recovery`. Supabase fires
+// PASSWORD_RECOVERY once while initializing and then strips the hash, so read it
+// here at import time (before any async work runs) as a fallback in case that
+// event is missed.
+const LANDED_ON_RECOVERY_LINK =
+  typeof window !== "undefined" && /[#&?]type=recovery(&|$)/.test(window.location.hash + window.location.search);
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
-  const [recovery, setRecovery] = useState(false);
+  const [recovery, setRecovery] = useState(LANDED_ON_RECOVERY_LINK);
   const started = useRef(false);
 
   // ---- profile hydration (cloud) ------------------------------------------
@@ -64,26 +71,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ---- bootstrap -----------------------------------------------------------
   useEffect(() => {
-    (async () => {
-      if (cloudEnabled && supabase) {
+    if (cloudEnabled && supabase) {
+      // Subscribe BEFORE any await: PASSWORD_RECOVERY fires once while Supabase
+      // initializes from the reset link, and a listener added after the awaits
+      // below would miss it and drop the user on the homepage instead.
+      const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+        // A reset-link click lands here with a recovery session; surface the
+        // update-password screen instead of dropping straight into the app.
+        if (event === "PASSWORD_RECOVERY") setRecovery(true);
+        // The bootstrap below loads the initial session itself.
+        if (event === "INITIAL_SESSION") return;
+        if (session) {
+          // Deferred: awaiting other Supabase calls inside this callback can
+          // deadlock the client while it's still initializing.
+          setTimeout(() => void loadCloudUser(session.user.id, session.user.email ?? undefined), 0);
+        } else if (event === "SIGNED_OUT") {
+          stopSync();
+          started.current = false;
+          setUser(null);
+        }
+      });
+      (async () => {
         const { data } = await supabase.auth.getSession();
         if (data.session) await loadCloudUser(data.session.user.id, data.session.user.email ?? undefined);
         setReady(true);
-        const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-          // A reset-link click lands here with a recovery session; surface the
-          // update-password screen instead of dropping straight into the app.
-          if (event === "PASSWORD_RECOVERY") setRecovery(true);
-          if (session) {
-            await loadCloudUser(session.user.id, session.user.email ?? undefined);
-          } else if (event === "SIGNED_OUT") {
-            stopSync();
-            started.current = false;
-            setUser(null);
-          }
-        });
-        return () => sub.subscription.unsubscribe();
-      }
-      // local-only mode
+      })();
+      return () => sub.subscription.unsubscribe();
+    }
+    // local-only mode
+    (async () => {
       await seedIfNeeded();
       const saved = localStorage.getItem(LOCAL_SESSION_KEY);
       if (saved) {
